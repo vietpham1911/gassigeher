@@ -280,6 +280,28 @@
     "manage_requests": "Reaktivierungsanfragen",
     "no_requests": "Keine ausstehenden Anfragen"
   },
+  "admin_dashboard": {
+    "title": "Admin Dashboard",
+    "statistics": "Statistiken",
+    "total_walks": "Gesamt Spaziergänge",
+    "upcoming_today": "Heute anstehend",
+    "upcoming_total": "Gesamt anstehend",
+    "active_users": "Aktive Benutzer",
+    "inactive_users": "Inaktive Benutzer",
+    "available_dogs": "Verfügbare Hunde",
+    "unavailable_dogs": "Nicht verfügbare Hunde",
+    "pending_experience_requests": "Level-Anfragen",
+    "pending_reactivation_requests": "Reaktivierungsanfragen",
+    "recent_activity": "Letzte Aktivitäten",
+    "no_activity": "Keine Aktivitäten",
+    "quick_links": "Schnellzugriff",
+    "system_settings": "Systemeinstellungen",
+    "booking_advance_days": "Buchungsvorlauf (Tage)",
+    "cancellation_notice_hours": "Stornierungsfrist (Stunden)",
+    "auto_deactivation_days": "Auto-Deaktivierung (Tage)",
+    "setting_updated": "Einstellung aktualisiert",
+    "settings_description": "Systemweite Einstellungen verwalten"
+  },
   "errors": {
     "required_field": "Dieses Feld ist erforderlich",
     "invalid_email": "Ungültige E-Mail-Adresse",

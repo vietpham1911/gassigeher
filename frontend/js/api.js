@@ -310,6 +310,16 @@ class API {
     async denyReactivationRequest(id, message = null) {
         return this.request('PUT', `/reactivation-requests/${id}/deny`, { message });
     }
+
+    // ADMIN DASHBOARD ENDPOINTS
+
+    async getAdminStats() {
+        return this.request('GET', '/admin/stats');
+    }
+
+    async getRecentActivity() {
+        return this.request('GET', '/admin/activity');
+    }
 }
 
 // Global instance

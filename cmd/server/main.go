@@ -51,6 +51,7 @@ func main() {
 	settingsHandler := handlers.NewSettingsHandler(db, cfg)
 	experienceHandler := handlers.NewExperienceRequestHandler(db, cfg)
 	reactivationHandler := handlers.NewReactivationRequestHandler(db, cfg)
+	dashboardHandler := handlers.NewDashboardHandler(db, cfg)
 
 	// Start cron service for auto-completion and reminders
 	cronService := cron.NewCronService(db)
@@ -136,6 +137,10 @@ func main() {
 	admin.HandleFunc("/reactivation-requests", reactivationHandler.ListRequests).Methods("GET")
 	admin.HandleFunc("/reactivation-requests/{id}/approve", reactivationHandler.ApproveRequest).Methods("PUT")
 	admin.HandleFunc("/reactivation-requests/{id}/deny", reactivationHandler.DenyRequest).Methods("PUT")
+
+	// Admin dashboard (admin only)
+	admin.HandleFunc("/admin/stats", dashboardHandler.GetStats).Methods("GET")
+	admin.HandleFunc("/admin/activity", dashboardHandler.GetRecentActivity).Methods("GET")
 
 	// Static files
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend")))
