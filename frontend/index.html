@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gassigeher - Hundespaziergänge</title>
+    <link rel="stylesheet" href="/assets/css/main.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">🐕 Gassigeher</div>
+            <nav>
+                <ul>
+                    <li><a href="/login.html" data-i18n="nav.login">Anmelden</a></li>
+                    <li><a href="/register.html" data-i18n="nav.register">Registrieren</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1 data-i18n="home.welcome">Willkommen bei Gassigeher</h1>
+                <p data-i18n="home.subtitle">Ihre Plattform für Hundespaziergänge</p>
+                <p data-i18n="home.description">Registrieren Sie sich, um mit unseren Hunden spazieren zu gehen. Helfen Sie unseren vierbeinigen Freunden und genießen Sie die Zeit in der Natur.</p>
+                <div>
+                    <a href="/register.html" class="btn" data-i18n="home.get_started">Jetzt starten</a>
+                    <a href="#features" class="btn btn-secondary" data-i18n="home.learn_more">Mehr erfahren</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="container" style="padding: 60px 0;">
+            <h2 class="text-center" data-i18n="home.features_title">Unsere Features</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📅</div>
+                    <h3 data-i18n="home.feature_booking">Einfache Buchung</h3>
+                    <p data-i18n="home.feature_booking_desc">Buchen Sie Ihre Spaziergänge über unseren Kalender</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⭐</div>
+                    <h3 data-i18n="home.feature_levels">Erfahrungsstufen</h3>
+                    <p data-i18n="home.feature_levels_desc">Von Anfängern bis zu erfahrenen Gassigehern</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📧</div>
+                    <h3 data-i18n="home.feature_notifications">Benachrichtigungen</h3>
+                    <p data-i18n="home.feature_notifications_desc">Erhalten Sie E-Mails zu Ihren Buchungen</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Gassigeher. Alle Rechte vorbehalten.</p>
+        </div>
+    </footer>
+
+    <script src="/js/i18n.js"></script>
+    <script src="/js/api.js"></script>
+    <script>
+        // Load translations
+        document.addEventListener('DOMContentLoaded', async () => {
+            await window.i18n.load();
+        });
+    </script>
+</body>
+</html>
