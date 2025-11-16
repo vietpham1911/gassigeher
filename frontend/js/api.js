@@ -184,6 +184,58 @@ class API {
             unavailable_reason: reason,
         });
     }
+
+    // BOOKING ENDPOINTS
+
+    async createBooking(data) {
+        return this.request('POST', '/bookings', data);
+    }
+
+    async getBookings(filters = {}) {
+        const params = new URLSearchParams(filters);
+        const endpoint = `/bookings${params.toString() ? '?' + params.toString() : ''}`;
+        return this.request('GET', endpoint);
+    }
+
+    async getBooking(id) {
+        return this.request('GET', `/bookings/${id}`);
+    }
+
+    async cancelBooking(id, reason = null) {
+        return this.request('PUT', `/bookings/${id}/cancel`, { reason });
+    }
+
+    async addBookingNotes(id, notes) {
+        return this.request('PUT', `/bookings/${id}/notes`, { notes });
+    }
+
+    async getCalendarData(year, month) {
+        return this.request('GET', `/bookings/calendar/${year}/${month}`);
+    }
+
+    // BLOCKED DATES ENDPOINTS
+
+    async getBlockedDates() {
+        return this.request('GET', '/blocked-dates');
+    }
+
+    async createBlockedDate(date, reason) {
+        return this.request('POST', '/blocked-dates', { date, reason });
+    }
+
+    async deleteBlockedDate(id) {
+        return this.request('DELETE', `/blocked-dates/${id}`);
+    }
+
+    // SETTINGS ENDPOINTS (Admin only)
+
+    async getSettings() {
+        return this.request('GET', '/settings');
+    }
+
+    async updateSetting(key, value) {
+        return this.request('PUT', `/settings/${key}`, { value });
+    }
 }
 
 // Global instance

@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/tranm/gassigeher/internal/config"
+	"github.com/tranm/gassigeher/internal/cron"
 	"github.com/tranm/gassigeher/internal/database"
 	"github.com/tranm/gassigeher/internal/handlers"
 	"github.com/tranm/gassigeher/internal/middleware"
@@ -45,6 +46,14 @@ func main() {
 	authHandler := handlers.NewAuthHandler(db, cfg)
 	userHandler := handlers.NewUserHandler(db, cfg)
 	dogHandler := handlers.NewDogHandler(db, cfg)
+	bookingHandler := handlers.NewBookingHandler(db, cfg)
+	blockedDateHandler := handlers.NewBlockedDateHandler(db, cfg)
+	settingsHandler := handlers.NewSettingsHandler(db, cfg)
+
+	// Start cron service for auto-completion and reminders
+	cronService := cron.NewCronService(db)
+	cronService.Start()
+	defer cronService.Stop()
 
 	// Public routes
 	router.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")
@@ -70,6 +79,17 @@ func main() {
 	protected.HandleFunc("/dogs/breeds", dogHandler.GetBreeds).Methods("GET")
 	protected.HandleFunc("/dogs/{id}", dogHandler.GetDog).Methods("GET")
 
+	// Bookings (authenticated users)
+	protected.HandleFunc("/bookings", bookingHandler.ListBookings).Methods("GET")
+	protected.HandleFunc("/bookings", bookingHandler.CreateBooking).Methods("POST")
+	protected.HandleFunc("/bookings/{id}", bookingHandler.GetBooking).Methods("GET")
+	protected.HandleFunc("/bookings/{id}/cancel", bookingHandler.CancelBooking).Methods("PUT")
+	protected.HandleFunc("/bookings/{id}/notes", bookingHandler.AddNotes).Methods("PUT")
+	protected.HandleFunc("/bookings/calendar/{year}/{month}", bookingHandler.GetCalendarData).Methods("GET")
+
+	// Blocked dates (read-only for authenticated users)
+	protected.HandleFunc("/blocked-dates", blockedDateHandler.ListBlockedDates).Methods("GET")
+
 	// Admin-only routes
 	admin := protected.PathPrefix("").Subrouter()
 	admin.Use(middleware.RequireAdmin)
@@ -80,6 +100,14 @@ func main() {
 	admin.HandleFunc("/dogs/{id}", dogHandler.DeleteDog).Methods("DELETE")
 	admin.HandleFunc("/dogs/{id}/photo", dogHandler.UploadDogPhoto).Methods("POST")
 	admin.HandleFunc("/dogs/{id}/availability", dogHandler.ToggleAvailability).Methods("PUT")
+
+	// Blocked dates management (admin only)
+	admin.HandleFunc("/blocked-dates", blockedDateHandler.CreateBlockedDate).Methods("POST")
+	admin.HandleFunc("/blocked-dates/{id}", blockedDateHandler.DeleteBlockedDate).Methods("DELETE")
+
+	// System settings (admin only)
+	admin.HandleFunc("/settings", settingsHandler.GetAllSettings).Methods("GET")
+	admin.HandleFunc("/settings/{key}", settingsHandler.UpdateSetting).Methods("PUT")
 
 	// Static files
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend")))

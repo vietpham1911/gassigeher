@@ -237,9 +237,44 @@
             return labels[size] || size;
         }
 
-        function viewDog(id) {
-            // Navigate to dog detail page (to be implemented in Phase 3)
-            window.location.href = `/dog-detail.html?id=${id}`;
+        function viewDog(dogId) {
+            showBookingModal(dogId);
+        }
+
+        function showBookingModal(dogId) {
+            const dog = currentDogs.find(d => d.id === dogId);
+            if (!dog) return;
+
+            const date = prompt(`Buchung für ${dog.name}\n\nDatum (JJJJ-MM-TT):`);
+            if (!date) return;
+
+            const walkType = confirm('Morgenspaziergang? (OK = Morgen, Abbrechen = Abend)') ? 'morning' : 'evening';
+
+            const defaultTime = walkType === 'morning' ? '09:00' : '17:00';
+            const time = prompt(`Uhrzeit (HH:MM):`, defaultTime);
+            if (!time) return;
+
+            createBooking(dogId, date, walkType, time);
+        }
+
+        async function createBooking(dogId, date, walkType, time) {
+            try {
+                const booking = await api.createBooking({
+                    dog_id: dogId,
+                    date: date,
+                    walk_type: walkType,
+                    scheduled_time: time
+                });
+
+                showAlert('success', 'Buchung erfolgreich erstellt! Sie erhalten eine Bestätigung per E-Mail.');
+
+                // Optionally redirect to dashboard
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 2000);
+            } catch (error) {
+                showAlert('error', error.message || 'Fehler beim Erstellen der Buchung');
+            }
         }
 
         function showAlert(type, message) {
