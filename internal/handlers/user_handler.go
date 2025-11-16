@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/tranm/gassigeher/internal/config"
 	"github.com/tranm/gassigeher/internal/middleware"
 	"github.com/tranm/gassigeher/internal/models"
@@ -247,4 +249,206 @@ func (h *UserHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		"message": "Photo uploaded successfully",
 		"photo":   filename,
 	})
+}
+
+// DeleteAccount deletes the current user's account (GDPR anonymization)
+func (h *UserHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		respondError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	// Parse request to get password confirmation
+	var req struct {
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Password == "" {
+		respondError(w, http.StatusBadRequest, "Password is required to confirm deletion")
+		return
+	}
+
+	// Get user
+	user, err := h.userRepo.FindByID(userID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
+	if user == nil {
+		respondError(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	// Verify password
+	if user.PasswordHash == nil || !h.authService.CheckPassword(req.Password, *user.PasswordHash) {
+		respondError(w, http.StatusUnauthorized, "Invalid password")
+		return
+	}
+
+	// Store email for confirmation before deletion
+	var emailForConfirmation string
+	if user.Email != nil {
+		emailForConfirmation = *user.Email
+	}
+
+	// Delete account (GDPR anonymization)
+	if err := h.userRepo.DeleteAccount(userID); err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to delete account")
+		return
+	}
+
+	// Send confirmation email to original email
+	if emailForConfirmation != "" {
+		go h.emailService.SendAccountDeletionConfirmation(emailForConfirmation, user.Name)
+	}
+
+	respondJSON(w, http.StatusOK, map[string]string{"message": "Account deleted successfully"})
+}
+
+// ListUsers lists all users (admin only)
+func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
+	// Parse filters
+	var activeOnly *bool
+	if activeParam := r.URL.Query().Get("active"); activeParam != "" {
+		active := activeParam == "true" || activeParam == "1"
+		activeOnly = &active
+	}
+
+	users, err := h.userRepo.FindAll(activeOnly)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to get users")
+		return
+	}
+
+	// Don't return sensitive data
+	for _, user := range users {
+		user.PasswordHash = nil
+		user.VerificationToken = nil
+		user.PasswordResetToken = nil
+	}
+
+	respondJSON(w, http.StatusOK, users)
+}
+
+// GetUser gets a user by ID (admin only)
+func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	// Get user ID from URL
+	vars := mux.Vars(r)
+	userID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	user, err := h.userRepo.FindByID(userID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
+	if user == nil {
+		respondError(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	// Don't return sensitive data
+	user.PasswordHash = nil
+	user.VerificationToken = nil
+	user.PasswordResetToken = nil
+
+	respondJSON(w, http.StatusOK, user)
+}
+
+// DeactivateUser deactivates a user account (admin only)
+func (h *UserHandler) DeactivateUser(w http.ResponseWriter, r *http.Request) {
+	// Get user ID from URL
+	vars := mux.Vars(r)
+	userID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	// Parse request
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Reason == "" {
+		respondError(w, http.StatusBadRequest, "Reason is required")
+		return
+	}
+
+	// Get user
+	user, err := h.userRepo.FindByID(userID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
+	if user == nil {
+		respondError(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	// Deactivate
+	if err := h.userRepo.Deactivate(userID, req.Reason); err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to deactivate user")
+		return
+	}
+
+	// Send email notification
+	if user.Email != nil {
+		go h.emailService.SendAccountDeactivated(*user.Email, user.Name, req.Reason)
+	}
+
+	respondJSON(w, http.StatusOK, map[string]string{"message": "User deactivated successfully"})
+}
+
+// ActivateUser activates a user account (admin only)
+func (h *UserHandler) ActivateUser(w http.ResponseWriter, r *http.Request) {
+	// Get user ID from URL
+	vars := mux.Vars(r)
+	userID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	// Parse optional message
+	var req struct {
+		Message *string `json:"message,omitempty"`
+	}
+	json.NewDecoder(r.Body).Decode(&req)
+
+	// Get user
+	user, err := h.userRepo.FindByID(userID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
+	if user == nil {
+		respondError(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	// Activate
+	if err := h.userRepo.Activate(userID); err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to activate user")
+		return
+	}
+
+	// Send email notification
+	if user.Email != nil {
+		go h.emailService.SendAccountReactivated(*user.Email, user.Name, req.Message)
+	}
+
+	respondJSON(w, http.StatusOK, map[string]string{"message": "User activated successfully"})
 }

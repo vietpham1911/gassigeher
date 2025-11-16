@@ -50,6 +50,7 @@ func main() {
 	blockedDateHandler := handlers.NewBlockedDateHandler(db, cfg)
 	settingsHandler := handlers.NewSettingsHandler(db, cfg)
 	experienceHandler := handlers.NewExperienceRequestHandler(db, cfg)
+	reactivationHandler := handlers.NewReactivationRequestHandler(db, cfg)
 
 	// Start cron service for auto-completion and reminders
 	cronService := cron.NewCronService(db)
@@ -63,6 +64,9 @@ func main() {
 	router.HandleFunc("/api/auth/forgot-password", authHandler.ForgotPassword).Methods("POST")
 	router.HandleFunc("/api/auth/reset-password", authHandler.ResetPassword).Methods("POST")
 
+	// Reactivation request (public - for deactivated users)
+	router.HandleFunc("/api/reactivation-requests", reactivationHandler.CreateRequest).Methods("POST")
+
 	// Protected routes (authenticated users)
 	protected := router.PathPrefix("/api").Subrouter()
 	protected.Use(middleware.AuthMiddleware(cfg.JWTSecret))
@@ -74,6 +78,7 @@ func main() {
 	protected.HandleFunc("/users/me", userHandler.GetMe).Methods("GET")
 	protected.HandleFunc("/users/me", userHandler.UpdateMe).Methods("PUT")
 	protected.HandleFunc("/users/me/photo", userHandler.UploadPhoto).Methods("POST")
+	protected.HandleFunc("/users/me", userHandler.DeleteAccount).Methods("DELETE")
 
 	// Dogs (read-only for authenticated users)
 	protected.HandleFunc("/dogs", dogHandler.ListDogs).Methods("GET")
@@ -120,6 +125,17 @@ func main() {
 	// Experience requests management (admin only)
 	admin.HandleFunc("/experience-requests/{id}/approve", experienceHandler.ApproveRequest).Methods("PUT")
 	admin.HandleFunc("/experience-requests/{id}/deny", experienceHandler.DenyRequest).Methods("PUT")
+
+	// User management (admin only)
+	admin.HandleFunc("/users", userHandler.ListUsers).Methods("GET")
+	admin.HandleFunc("/users/{id}", userHandler.GetUser).Methods("GET")
+	admin.HandleFunc("/users/{id}/activate", userHandler.ActivateUser).Methods("PUT")
+	admin.HandleFunc("/users/{id}/deactivate", userHandler.DeactivateUser).Methods("PUT")
+
+	// Reactivation requests management (admin only)
+	admin.HandleFunc("/reactivation-requests", reactivationHandler.ListRequests).Methods("GET")
+	admin.HandleFunc("/reactivation-requests/{id}/approve", reactivationHandler.ApproveRequest).Methods("PUT")
+	admin.HandleFunc("/reactivation-requests/{id}/deny", reactivationHandler.DenyRequest).Methods("PUT")
 
 	// Static files
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend")))

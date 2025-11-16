@@ -263,6 +263,53 @@ class API {
     async denyExperienceRequest(id, message = null) {
         return this.request('PUT', `/experience-requests/${id}/deny`, { message });
     }
+
+    // ACCOUNT DELETION & GDPR ENDPOINTS
+
+    async deleteAccount(password) {
+        return this.request('DELETE', '/users/me', { password });
+    }
+
+    // USER MANAGEMENT ENDPOINTS (Admin only)
+
+    async getUsers(activeOnly = null) {
+        const params = new URLSearchParams();
+        if (activeOnly !== null) {
+            params.append('active', activeOnly ? 'true' : 'false');
+        }
+        const endpoint = `/users${params.toString() ? '?' + params.toString() : ''}`;
+        return this.request('GET', endpoint);
+    }
+
+    async getUser(id) {
+        return this.request('GET', `/users/${id}`);
+    }
+
+    async deactivateUser(id, reason) {
+        return this.request('PUT', `/users/${id}/deactivate`, { reason });
+    }
+
+    async activateUser(id, message = null) {
+        return this.request('PUT', `/users/${id}/activate`, { message });
+    }
+
+    // REACTIVATION REQUEST ENDPOINTS
+
+    async createReactivationRequest(email) {
+        return this.request('POST', '/reactivation-requests', { email });
+    }
+
+    async getReactivationRequests() {
+        return this.request('GET', '/reactivation-requests');
+    }
+
+    async approveReactivationRequest(id, message = null) {
+        return this.request('PUT', `/reactivation-requests/${id}/approve`, { message });
+    }
+
+    async denyReactivationRequest(id, message = null) {
+        return this.request('PUT', `/reactivation-requests/${id}/deny`, { message });
+    }
 }
 
 // Global instance

@@ -324,3 +324,199 @@ func (r *UserRepository) UpdateLastActivity(userID int) error {
 	_, err := r.db.Exec(query, time.Now(), userID)
 	return err
 }
+
+// DeleteAccount performs GDPR-compliant account deletion (anonymization)
+func (r *UserRepository) DeleteAccount(userID int) error {
+	// Generate anonymous ID
+	anonymousID := fmt.Sprintf("anonymous_user_%d", time.Now().Unix())
+
+	query := `
+		UPDATE users SET
+			name = 'Deleted User',
+			email = NULL,
+			phone = NULL,
+			password_hash = NULL,
+			profile_photo = NULL,
+			is_deleted = 1,
+			anonymous_id = ?,
+			deleted_at = ?,
+			updated_at = ?
+		WHERE id = ?
+	`
+
+	now := time.Now()
+	_, err := r.db.Exec(query, anonymousID, now, now, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete account: %w", err)
+	}
+
+	return nil
+}
+
+// Deactivate deactivates a user account
+func (r *UserRepository) Deactivate(userID int, reason string) error {
+	query := `
+		UPDATE users SET
+			is_active = 0,
+			deactivated_at = ?,
+			deactivation_reason = ?,
+			updated_at = ?
+		WHERE id = ?
+	`
+
+	now := time.Now()
+	_, err := r.db.Exec(query, now, reason, now, userID)
+	if err != nil {
+		return fmt.Errorf("failed to deactivate user: %w", err)
+	}
+
+	return nil
+}
+
+// Activate activates a user account
+func (r *UserRepository) Activate(userID int) error {
+	query := `
+		UPDATE users SET
+			is_active = 1,
+			reactivated_at = ?,
+			updated_at = ?
+		WHERE id = ?
+	`
+
+	now := time.Now()
+	_, err := r.db.Exec(query, now, now, userID)
+	if err != nil {
+		return fmt.Errorf("failed to activate user: %w", err)
+	}
+
+	return nil
+}
+
+// FindInactiveUsers finds users who haven't been active for the specified number of days
+func (r *UserRepository) FindInactiveUsers(days int) ([]*models.User, error) {
+	query := `
+		SELECT id, name, email, phone, password_hash, experience_level,
+		       is_verified, is_active, is_deleted, verification_token,
+		       verification_token_expires, password_reset_token,
+		       password_reset_expires, profile_photo, anonymous_id,
+		       terms_accepted_at, last_activity_at, deactivated_at,
+		       deactivation_reason, reactivated_at, deleted_at,
+		       created_at, updated_at
+		FROM users
+		WHERE is_active = 1 
+		  AND is_deleted = 0 
+		  AND last_activity_at < ?
+	`
+
+	cutoffDate := time.Now().AddDate(0, 0, -days)
+	rows, err := r.db.Query(query, cutoffDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query inactive users: %w", err)
+	}
+	defer rows.Close()
+
+	users := []*models.User{}
+	for rows.Next() {
+		user := &models.User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Email,
+			&user.Phone,
+			&user.PasswordHash,
+			&user.ExperienceLevel,
+			&user.IsVerified,
+			&user.IsActive,
+			&user.IsDeleted,
+			&user.VerificationToken,
+			&user.VerificationTokenExpires,
+			&user.PasswordResetToken,
+			&user.PasswordResetExpires,
+			&user.ProfilePhoto,
+			&user.AnonymousID,
+			&user.TermsAcceptedAt,
+			&user.LastActivityAt,
+			&user.DeactivatedAt,
+			&user.DeactivationReason,
+			&user.ReactivatedAt,
+			&user.DeletedAt,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+// FindAll finds all users with optional filters
+func (r *UserRepository) FindAll(activeOnly *bool) ([]*models.User, error) {
+	query := `
+		SELECT id, name, email, phone, password_hash, experience_level,
+		       is_verified, is_active, is_deleted, verification_token,
+		       verification_token_expires, password_reset_token,
+		       password_reset_expires, profile_photo, anonymous_id,
+		       terms_accepted_at, last_activity_at, deactivated_at,
+		       deactivation_reason, reactivated_at, deleted_at,
+		       created_at, updated_at
+		FROM users
+		WHERE is_deleted = 0
+	`
+
+	args := []interface{}{}
+
+	if activeOnly != nil {
+		if *activeOnly {
+			query += " AND is_active = 1"
+		} else {
+			query += " AND is_active = 0"
+		}
+	}
+
+	query += " ORDER BY created_at DESC"
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query users: %w", err)
+	}
+	defer rows.Close()
+
+	users := []*models.User{}
+	for rows.Next() {
+		user := &models.User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Email,
+			&user.Phone,
+			&user.PasswordHash,
+			&user.ExperienceLevel,
+			&user.IsVerified,
+			&user.IsActive,
+			&user.IsDeleted,
+			&user.VerificationToken,
+			&user.VerificationTokenExpires,
+			&user.PasswordResetToken,
+			&user.PasswordResetExpires,
+			&user.ProfilePhoto,
+			&user.AnonymousID,
+			&user.TermsAcceptedAt,
+			&user.LastActivityAt,
+			&user.DeactivatedAt,
+			&user.DeactivationReason,
+			&user.ReactivatedAt,
+			&user.DeletedAt,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}

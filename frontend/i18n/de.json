@@ -244,7 +244,41 @@
     "upload_photo": "Foto hochladen",
     "profile_updated": "Profil aktualisiert",
     "photo_uploaded": "Foto hochgeladen",
-    "highest_level": "Sie haben das höchste Level erreicht!"
+    "highest_level": "Sie haben das höchste Level erreicht!",
+    "delete_account": "Konto löschen",
+    "delete_account_warning": "WARNUNG: Diese Aktion kann nicht rückgängig gemacht werden!",
+    "delete_account_info": "Ihre persönlichen Daten werden gelöscht, aber Ihre Spaziergangshistorie wird anonymisiert aufbewahrt.",
+    "confirm_password_to_delete": "Geben Sie Ihr Passwort ein, um die Löschung zu bestätigen",
+    "account_deleted": "Konto wurde gelöscht"
+  },
+  "users": {
+    "title": "Benutzerverwaltung",
+    "all_users": "Alle Benutzer",
+    "active_users": "Aktive Benutzer",
+    "inactive_users": "Inaktive Benutzer",
+    "user_details": "Benutzerdetails",
+    "activate_user": "Aktivieren",
+    "deactivate_user": "Deaktivieren",
+    "deactivation_reason": "Grund der Deaktivierung",
+    "activation_message": "Nachricht (optional)",
+    "confirm_deactivate": "Sind Sie sicher, dass Sie diesen Benutzer deaktivieren möchten?",
+    "confirm_activate": "Möchten Sie diesen Benutzer aktivieren?",
+    "user_activated": "Benutzer aktiviert",
+    "user_deactivated": "Benutzer deaktiviert",
+    "last_activity": "Letzte Aktivität",
+    "member_since": "Mitglied seit",
+    "status_active": "Aktiv",
+    "status_inactive": "Inaktiv"
+  },
+  "reactivation": {
+    "title": "Reaktivierung beantragen",
+    "description": "Ihr Konto wurde deaktiviert. Sie können eine Reaktivierung beantragen.",
+    "enter_email": "Geben Sie Ihre E-Mail-Adresse ein",
+    "submit_request": "Reaktivierung beantragen",
+    "request_submitted": "Anfrage eingereicht",
+    "request_pending": "Ihre Anfrage wird geprüft",
+    "manage_requests": "Reaktivierungsanfragen",
+    "no_requests": "Keine ausstehenden Anfragen"
   },
   "errors": {
     "required_field": "Dieses Feld ist erforderlich",

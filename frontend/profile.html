@@ -107,6 +107,16 @@
                     <button type="submit" class="btn" data-i18n="auth.change_password">Passwort ändern</button>
                 </form>
             </div>
+
+            <!-- Account Deletion (GDPR) -->
+            <div class="card" style="border-left: 4px solid #dc3545;">
+                <h3 style="color: #dc3545;" data-i18n="profile.delete_account">Konto löschen</h3>
+                <div style="background: #f8d7da; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                    <p style="margin: 0; color: #721c24; font-weight: 600;" data-i18n="profile.delete_account_warning">WARNUNG: Diese Aktion kann nicht rückgängig gemacht werden!</p>
+                </div>
+                <p data-i18n="profile.delete_account_info">Ihre persönlichen Daten werden gelöscht, aber Ihre Spaziergangshistorie wird anonymisiert aufbewahrt.</p>
+                <button class="btn btn-danger" onclick="confirmDeleteAccount()" data-i18n="profile.delete_account">Konto löschen</button>
+            </div>
         </div>
     </main>
 
@@ -333,6 +343,26 @@
                 document.getElementById('password-form').reset();
             } catch (error) {
                 showAlert('error', error.message || 'Fehler beim Ändern des Passworts');
+            }
+        }
+
+        async function confirmDeleteAccount() {
+            if (!confirm('WARNUNG: Diese Aktion kann nicht rückgängig gemacht werden!\n\nIhre persönlichen Daten werden gelöscht, aber Ihre Spaziergangshistorie wird anonymisiert aufbewahrt.\n\nMöchten Sie fortfahren?')) {
+                return;
+            }
+
+            const password = prompt('Geben Sie Ihr Passwort ein, um die Löschung zu bestätigen:');
+            if (!password) return;
+
+            try {
+                await api.deleteAccount(password);
+                alert('Ihr Konto wurde gelöscht. Sie erhalten eine Bestätigungs-E-Mail.');
+
+                // Logout and redirect
+                api.setToken(null);
+                window.location.href = '/';
+            } catch (error) {
+                showAlert('error', error.message || 'Fehler beim Löschen des Kontos');
             }
         }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Level-Anfragen verwalten - Gassigeher Admin</title>
+    <title>Reaktivierungsanfragen - Gassigeher Admin</title>
     <link rel="stylesheet" href="/assets/css/main.css">
 </head>
 <body>
@@ -26,7 +26,7 @@
 
     <main style="padding: 40px 0;">
         <div class="container">
-            <h1 data-i18n="admin.manage_experience_requests">Level-Anfragen verwalten</h1>
+            <h1 data-i18n="reactivation.manage_requests">Reaktivierungsanfragen</h1>
 
             <div id="alert-container"></div>
 
@@ -52,7 +52,7 @@
 
         async function loadRequests() {
             try {
-                requests = await api.getExperienceRequests();
+                requests = await api.getReactivationRequests();
                 renderRequests();
             } catch (error) {
                 showAlert('error', error.message || 'Fehler beim Laden der Anfragen');
@@ -63,42 +63,33 @@
             const container = document.getElementById('requests-list');
 
             if (requests.length === 0) {
-                container.innerHTML = '<div class="card"><p data-i18n="admin.no_pending_requests">Keine ausstehenden Anfragen</p></div>';
+                container.innerHTML = '<div class="card"><p data-i18n="reactivation.no_requests">Keine ausstehenden Anfragen</p></div>';
                 return;
             }
 
             container.innerHTML = requests.map(request => {
-                const levelLabel = getLevelLabel(request.requested_level);
-                const statusClass = request.status === 'pending' ? 'alert-warning' :
-                                  (request.status === 'approved' ? 'alert-success' : 'alert-error');
-
                 return `
                     <div class="card" style="margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div style="flex: 1;">
-                                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-                                    <h4 style="margin: 0;">${request.user ? request.user.name : 'User #' + request.user_id}</h4>
-                                    <span class="dog-category-badge ${request.requested_level}">${levelLabel}</span>
-                                </div>
+                                <h4 style="margin: 0 0 10px 0;">${request.user ? request.user.name : 'User #' + request.user_id}</h4>
                                 <p style="margin: 5px 0; color: #666;">
                                     <strong>E-Mail:</strong> ${request.user && request.user.email ? request.user.email : 'N/A'}
                                 </p>
                                 <p style="margin: 5px 0; color: #666;">
-                                    <strong>Aktuelles Level:</strong> ${request.user ? getLevelLabel(request.user.experience_level) : 'N/A'}
+                                    <strong>Level:</strong> ${request.user ? getLevelLabel(request.user.experience_level) : 'N/A'}
                                 </p>
                                 <p style="margin: 5px 0; color: #666;">
-                                    <strong>Beantragt am:</strong> ${new Date(request.created_at).toLocaleDateString('de-DE')}
+                                    <strong>Deaktiviert seit:</strong> ${request.user && request.user.deactivated_at ? new Date(request.user.deactivated_at).toLocaleDateString('de-DE') : 'N/A'}
                                 </p>
-                                ${request.reviewed_at ? `
-                                    <p style="margin: 5px 0; color: #666;">
-                                        <strong>Status:</strong> <span class="alert ${statusClass}" style="padding: 4px 8px; font-size: 0.8rem; margin-left: 5px;">${getStatusLabel(request.status)}</span>
+                                ${request.user && request.user.deactivation_reason ? `
+                                    <p style="margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 4px;">
+                                        <strong>Deaktivierungsgrund:</strong> ${request.user.deactivation_reason}
                                     </p>
                                 ` : ''}
-                                ${request.admin_message ? `
-                                    <p style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px;">
-                                        <strong>Nachricht:</strong> ${request.admin_message}
-                                    </p>
-                                ` : ''}
+                                <p style="margin: 5px 0; color: #666;">
+                                    <strong>Anfrage vom:</strong> ${new Date(request.created_at).toLocaleDateString('de-DE')}
+                                </p>
                             </div>
                             ${request.status === 'pending' ? `
                                 <div style="display: flex; gap: 5px; flex-direction: column; min-width: 120px;">
@@ -117,21 +108,12 @@
             return labels[level] || level;
         }
 
-        function getStatusLabel(status) {
-            const labels = {
-                pending: 'Ausstehend',
-                approved: 'Genehmigt',
-                denied: 'Abgelehnt'
-            };
-            return labels[status] || status;
-        }
-
         async function approveRequest(id) {
             const message = prompt('Optional: Nachricht an den Benutzer:');
 
             try {
-                await api.approveExperienceRequest(id, message || null);
-                showAlert('success', 'Antrag genehmigt');
+                await api.approveReactivationRequest(id, message || null);
+                showAlert('success', 'Anfrage genehmigt und Benutzer reaktiviert');
                 loadRequests();
             } catch (error) {
                 showAlert('error', error.message || 'Fehler beim Genehmigen');
@@ -141,13 +123,13 @@
         async function denyRequest(id) {
             const message = prompt('Optional: Nachricht an den Benutzer (Grund der Ablehnung):');
 
-            if (!confirm('Möchten Sie diesen Antrag wirklich ablehnen?')) {
+            if (!confirm('Möchten Sie diese Reaktivierungsanfrage wirklich ablehnen?')) {
                 return;
             }
 
             try {
-                await api.denyExperienceRequest(id, message || null);
-                showAlert('success', 'Antrag abgelehnt');
+                await api.denyReactivationRequest(id, message || null);
+                showAlert('success', 'Anfrage abgelehnt');
                 loadRequests();
             } catch (error) {
                 showAlert('error', error.message || 'Fehler beim Ablehnen');
