@@ -40,6 +40,43 @@ type AddNotesRequest struct {
 	Notes string `json:"notes"`
 }
 
+// MoveBookingRequest represents a request to move a booking to a new date/time
+type MoveBookingRequest struct {
+	Date          string  `json:"date"`
+	WalkType      string  `json:"walk_type"`
+	ScheduledTime string  `json:"scheduled_time"`
+	Reason        string  `json:"reason"`
+}
+
+// Validate validates the move booking request
+func (r *MoveBookingRequest) Validate() error {
+	if r.Date == "" {
+		return &ValidationError{Field: "date", Message: "Date is required"}
+	}
+
+	if _, err := time.Parse("2006-01-02", r.Date); err != nil {
+		return &ValidationError{Field: "date", Message: "Date must be in YYYY-MM-DD format"}
+	}
+
+	if r.WalkType != "morning" && r.WalkType != "evening" {
+		return &ValidationError{Field: "walk_type", Message: "Walk type must be 'morning' or 'evening'"}
+	}
+
+	if r.ScheduledTime == "" {
+		return &ValidationError{Field: "scheduled_time", Message: "Scheduled time is required"}
+	}
+
+	if _, err := time.Parse("15:04", r.ScheduledTime); err != nil {
+		return &ValidationError{Field: "scheduled_time", Message: "Scheduled time must be in HH:MM format"}
+	}
+
+	if r.Reason == "" {
+		return &ValidationError{Field: "reason", Message: "Reason is required"}
+	}
+
+	return nil
+}
+
 // BookingFilterRequest represents filters for listing bookings
 type BookingFilterRequest struct {
 	UserID    *int    `json:"user_id,omitempty"`

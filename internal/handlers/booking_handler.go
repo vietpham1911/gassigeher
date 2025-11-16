@@ -415,6 +415,108 @@ func (h *BookingHandler) AddNotes(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, map[string]string{"message": "Notes added successfully"})
 }
 
+// MoveBooking moves a booking to a new date/time (admin only)
+func (h *BookingHandler) MoveBooking(w http.ResponseWriter, r *http.Request) {
+	// Get booking ID from URL
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid booking ID")
+		return
+	}
+
+	// Get admin user ID
+	userID, _ := r.Context().Value("user_id").(int)
+
+	// Parse request
+	var req models.MoveBookingRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Validate request
+	if err := req.Validate(); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Get booking with details
+	booking, err := h.bookingRepo.FindByIDWithDetails(id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to get booking")
+		return
+	}
+	if booking == nil {
+		respondError(w, http.StatusNotFound, "Booking not found")
+		return
+	}
+
+	// Check if booking can be moved (only scheduled bookings)
+	if booking.Status != "scheduled" {
+		respondError(w, http.StatusBadRequest, "Can only move scheduled bookings")
+		return
+	}
+
+	// Store old values for email
+	oldDate := booking.Date
+	oldWalkType := booking.WalkType
+	oldTime := booking.ScheduledTime
+
+	// Check if new date is blocked
+	isBlocked, err := h.blockedDateRepo.IsBlocked(req.Date)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to check blocked dates")
+		return
+	}
+	if isBlocked {
+		respondError(w, http.StatusBadRequest, "The new date is blocked")
+		return
+	}
+
+	// Check for double-booking at new time
+	isDoubleBooked, err := h.bookingRepo.CheckDoubleBooking(booking.DogID, req.Date, req.WalkType)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to check availability")
+		return
+	}
+	if isDoubleBooked {
+		respondError(w, http.StatusConflict, "Dog is already booked for this time")
+		return
+	}
+
+	// Update booking
+	booking.Date = req.Date
+	booking.WalkType = req.WalkType
+	booking.ScheduledTime = req.ScheduledTime
+
+	if err := h.bookingRepo.Update(booking); err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to move booking")
+		return
+	}
+
+	// Update user last activity
+	h.userRepo.UpdateLastActivity(userID)
+
+	// Send email notification to user
+	if booking.User.Email != nil {
+		go h.emailService.SendBookingMoved(
+			*booking.User.Email,
+			booking.User.Name,
+			booking.Dog.Name,
+			oldDate,
+			oldWalkType,
+			oldTime,
+			req.Date,
+			req.WalkType,
+			req.ScheduledTime,
+			req.Reason,
+		)
+	}
+
+	respondJSON(w, http.StatusOK, map[string]string{"message": "Booking moved successfully"})
+}
+
 // GetCalendarData gets calendar data for a specific month
 func (h *BookingHandler) GetCalendarData(w http.ResponseWriter, r *http.Request) {
 	// Get year and month from URL

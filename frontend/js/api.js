@@ -205,6 +205,15 @@ class API {
         return this.request('PUT', `/bookings/${id}/cancel`, { reason });
     }
 
+    async moveBooking(id, date, walkType, scheduledTime, reason) {
+        return this.request('PUT', `/bookings/${id}/move`, {
+            date,
+            walk_type: walkType,
+            scheduled_time: scheduledTime,
+            reason
+        });
+    }
+
     async addBookingNotes(id, notes) {
         return this.request('PUT', `/bookings/${id}/notes`, { notes });
     }

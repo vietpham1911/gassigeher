@@ -551,3 +551,112 @@ func (s *EmailService) SendBookingReminder(to, name, dogName, date, walkType, sc
 
 	return s.SendEmail(to, subject, body.String())
 }
+
+// SendBookingMoved sends an email when admin moves a booking
+func (s *EmailService) SendBookingMoved(to, name, dogName, oldDate, oldWalkType, oldTime, newDate, newWalkType, newTime, reason string) error {
+	subject := fmt.Sprintf("Deine Buchung wurde verschoben - %s", dogName)
+
+	oldWalkLabel := "Morgen"
+	if oldWalkType == "evening" {
+		oldWalkLabel = "Abend"
+	}
+
+	newWalkLabel := "Morgen"
+	if newWalkType == "evening" {
+		newWalkLabel = "Abend"
+	}
+
+	tmpl := `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #26272b; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #17a2b8; color: white; padding: 20px; text-align: center; border-radius: 6px 6px 0 0; }
+        .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 6px 6px; }
+        .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 6px; }
+        .old-details { border-left: 4px solid #dc3545; }
+        .new-details { border-left: 4px solid #28a745; margin-top: 20px; }
+        .reason-box { background-color: #fff3cd; padding: 15px; margin: 20px 0; border-radius: 6px; border-left: 4px solid #ffc107; }
+        .detail-row { margin: 10px 0; }
+        .label { font-weight: 600; color: #666; }
+        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Buchung verschoben</h1>
+        </div>
+        <div class="content">
+            <p>Hallo {{.Name}},</p>
+            <p>Ihre Buchung wurde auf einen neuen Termin verschoben:</p>
+
+            <div class="booking-details old-details">
+                <h3 style="margin-top: 0; color: #dc3545;">Alter Termin</h3>
+                <div class="detail-row">
+                    <span class="label">Hund:</span> {{.DogName}}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Datum:</span> {{.OldDate}}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Spaziergang:</span> {{.OldWalkType}}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Uhrzeit:</span> {{.OldTime}} Uhr
+                </div>
+            </div>
+
+            <div class="booking-details new-details">
+                <h3 style="margin-top: 0; color: #28a745;">Neuer Termin</h3>
+                <div class="detail-row">
+                    <span class="label">Hund:</span> {{.DogName}}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Datum:</span> {{.NewDate}}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Spaziergang:</span> {{.NewWalkType}}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Uhrzeit:</span> {{.NewTime}} Uhr
+                </div>
+            </div>
+
+            <div class="reason-box">
+                <strong>Grund der Verschiebung:</strong><br>
+                {{.Reason}}
+            </div>
+
+            <p>Wir entschuldigen uns für die Unannehmlichkeiten. Bei Fragen oder Problemen wenden Sie sich bitte an uns.</p>
+        </div>
+        <div class="footer">
+            <p>© 2025 Gassigeher. Alle Rechte vorbehalten.</p>
+        </div>
+    </div>
+</body>
+</html>
+`
+
+	t := template.Must(template.New("moved").Parse(tmpl))
+	var body bytes.Buffer
+	data := map[string]string{
+		"Name":        name,
+		"DogName":     dogName,
+		"OldDate":     oldDate,
+		"OldWalkType": oldWalkLabel,
+		"OldTime":     oldTime,
+		"NewDate":     newDate,
+		"NewWalkType": newWalkLabel,
+		"NewTime":     newTime,
+		"Reason":      reason,
+	}
+	if err := t.Execute(&body, data); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return s.SendEmail(to, subject, body.String())
+}

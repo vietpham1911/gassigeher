@@ -105,6 +105,9 @@ func main() {
 	admin.HandleFunc("/blocked-dates", blockedDateHandler.CreateBlockedDate).Methods("POST")
 	admin.HandleFunc("/blocked-dates/{id}", blockedDateHandler.DeleteBlockedDate).Methods("DELETE")
 
+	// Booking management (admin only)
+	admin.HandleFunc("/bookings/{id}/move", bookingHandler.MoveBooking).Methods("PUT")
+
 	// System settings (admin only)
 	admin.HandleFunc("/settings", settingsHandler.GetAllSettings).Methods("GET")
 	admin.HandleFunc("/settings/{key}", settingsHandler.UpdateSetting).Methods("PUT")
