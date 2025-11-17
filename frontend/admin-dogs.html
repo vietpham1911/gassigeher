@@ -195,13 +195,17 @@
             }
         }
 
-        async function toggleAvailability(id, isAvailable) {
-            const reason = isAvailable ? null : prompt('Grund für Nichtverfügbarkeit:');
-            if (!isAvailable && !reason) return;
+        async function toggleAvailability(id, makeAvailable) {
+            // If making unavailable, ask for reason
+            let reason = null;
+            if (!makeAvailable) {
+                reason = prompt('Grund für Nichtverfügbarkeit:');
+                if (!reason) return; // Cancel if no reason provided
+            }
 
             try {
-                await api.toggleDogAvailability(id, isAvailable, reason);
-                showAlert('success', 'Status aktualisiert');
+                await api.toggleDogAvailability(id, makeAvailable, reason);
+                showAlert('success', makeAvailable ? 'Hund ist jetzt verfügbar' : 'Hund ist jetzt nicht verfügbar');
                 loadDogs();
             } catch (error) {
                 showAlert('error', error.message || 'Fehler beim Aktualisieren');
