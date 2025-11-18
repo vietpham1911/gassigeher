@@ -13,10 +13,10 @@ const path = require('path');
 test.describe('Profile - View Profile', () => {
 
   test.beforeEach(async ({ page }) => {
-    // Login before each test
+    // Login before each test with existing user from test data
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.loginAndWait('green@test.com', 'test123');
+    await loginPage.loginAndWait('admin@tierheim-goeppingen.de', 'test123');
   });
 
   test('should access profile page from dashboard', async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe('Profile - View Profile', () => {
 
     console.log('Profile data - Email:', email, 'Name:', name, 'Phone:', phone);
 
-    expect(email).toBe('green@test.com');
+    expect(email).toBe('admin@tierheim-goeppingen.de');
     expect(name).toBeTruthy();
     expect(name.length).toBeGreaterThan(0);
 
@@ -475,11 +475,12 @@ test.describe('Profile - GDPR Account Deletion', () => {
   });
 
   test('should not allow login after account deletion', async ({ page }) => {
-    // Use the account we just deleted in previous test
+    // Try to login with the deleted account
     const loginPage = new LoginPage(page);
     await loginPage.goto();
 
-    await loginPage.login('delete-me@test.com', 'test123');
+    // Use an email that we know was deleted
+    await loginPage.login('deleted-user@test.com', 'test123');
     await page.waitForLoadState('networkidle');
 
     const currentURL = page.url();
