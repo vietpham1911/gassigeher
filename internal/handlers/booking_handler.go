@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -170,6 +171,12 @@ func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.bookingRepo.Create(booking); err != nil {
+		// BUGFIX #2: Detect UNIQUE constraint violation (race condition scenario)
+		// SQLite returns error containing "UNIQUE constraint failed" when duplicate booking occurs
+		if strings.Contains(err.Error(), "UNIQUE constraint") || strings.Contains(err.Error(), "unique constraint") {
+			respondError(w, http.StatusConflict, "This dog is already booked for this time")
+			return
+		}
 		respondError(w, http.StatusInternalServerError, "Failed to create booking")
 		return
 	}

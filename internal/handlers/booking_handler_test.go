@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tranm/gassigeher/internal/config"
 	"github.com/tranm/gassigeher/internal/models"
+	"github.com/tranm/gassigeher/internal/repository"
 	"github.com/tranm/gassigeher/internal/services"
 	"github.com/tranm/gassigeher/internal/testutil"
 )
@@ -220,6 +221,74 @@ func TestBookingHandler_CreateBooking(t *testing.T) {
 
 		if rec.Code != http.StatusForbidden {
 			t.Errorf("Expected status 403 for inactive user, got %d", rec.Code)
+		}
+	})
+
+	// DONE: BUG #2 - Test for proper error handling on UNIQUE constraint violation (race condition)
+	t.Run("BUGFIX: proper error for concurrent booking attempt (race condition)", func(t *testing.T) {
+		// This tests the race condition scenario:
+		// Two users check availability simultaneously, both see "available"
+		// Both try to book, second one hits UNIQUE constraint
+		// Should get user-friendly error, not "Failed to create booking"
+
+		userID := testutil.SeedTestUser(t, db, "raceuser@example.com", "Race User", "green")
+		dogID := testutil.SeedTestDog(t, db, "RaceDog", "Labrador", "green")
+
+		futureDate := time.Now().AddDate(0, 0, 3).Format("2006-01-02")
+
+		// First booking succeeds
+		booking1 := &models.Booking{
+			UserID:        userID,
+			DogID:         dogID,
+			Date:          futureDate,
+			WalkType:      "morning",
+			ScheduledTime: "09:00",
+			Status:        "scheduled",
+		}
+		bookingRepo := repository.NewBookingRepository(db)
+		err := bookingRepo.Create(booking1)
+		if err != nil {
+			t.Fatalf("First booking should succeed: %v", err)
+		}
+
+		// Second booking attempts same slot (simulates race condition)
+		// This will hit UNIQUE constraint on (dog_id, date, walk_type)
+		reqBody := map[string]interface{}{
+			"dog_id":         dogID,
+			"date":           futureDate,
+			"walk_type":      "morning",
+			"scheduled_time": "09:00",
+		}
+
+		body, _ := json.Marshal(reqBody)
+		req := httptest.NewRequest("POST", "/api/bookings", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		ctx := contextWithUser(req.Context(), userID, "raceuser@example.com", false)
+		req = req.WithContext(ctx)
+
+		rec := httptest.NewRecorder()
+		handler.CreateBooking(rec, req)
+
+		// BUGFIX: Should return 409 Conflict with clear message, not 500 Internal Error
+		if rec.Code != http.StatusConflict {
+			t.Errorf("BUGFIX: Expected status 409 Conflict for duplicate booking, got %d (currently returns 500)", rec.Code)
+		}
+
+		var response map[string]interface{}
+		json.Unmarshal(rec.Body.Bytes(), &response)
+		errorMsg := response["error"].(string)
+
+		// Should NOT contain generic "Failed to create booking"
+		// Should contain user-friendly message about already booked
+		if errorMsg == "Failed to create booking" {
+			t.Errorf("BUGFIX: Generic error message reveals implementation detail. Should say 'already booked'")
+		}
+
+		t.Logf("BUGFIX: Concurrent booking returns status=%d, error=%q", rec.Code, errorMsg)
+
+		// Verify we don't get a 500 error with generic message
+		if rec.Code == http.StatusInternalServerError && errorMsg == "Failed to create booking" {
+			t.Errorf("BUGFIX: Race condition returns 500 'Failed to create booking'. Should return 409 'This dog is already booked for this time'")
 		}
 	})
 }
