@@ -220,7 +220,7 @@ func TestCORSMiddleware(t *testing.T) {
 		}
 
 		// Verify CORS headers are present
-		if rec.Header().Get("Access-Control-Allow-Origin") != "*" {
+		if rec.Header().Get("Access-Control-Allow-Origin") != "http://localhost:8080" {
 			t.Error("Expected CORS headers on OPTIONS request")
 		}
 	})
