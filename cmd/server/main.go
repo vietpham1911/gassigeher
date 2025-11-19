@@ -62,7 +62,11 @@ func main() {
 	// Public routes
 	router.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")
 	router.HandleFunc("/api/auth/verify-email", authHandler.VerifyEmail).Methods("POST")
-	router.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST")
+	// BUG FIX #6: Add rate limiting to login endpoint
+	loginRoute := router.PathPrefix("/api/auth/login").Subrouter()
+	loginRoute.Use(middleware.RateLimitLogin)
+	loginRoute.HandleFunc("", authHandler.Login).Methods("POST")
+	// DONE: BUG #6 - Rate limiting applied to login
 	router.HandleFunc("/api/auth/forgot-password", authHandler.ForgotPassword).Methods("POST")
 	router.HandleFunc("/api/auth/reset-password", authHandler.ResetPassword).Methods("POST")
 
