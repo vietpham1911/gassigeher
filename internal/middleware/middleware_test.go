@@ -210,7 +210,7 @@ func TestCORSMiddleware(t *testing.T) {
 
 	t.Run("handles OPTIONS preflight request", func(t *testing.T) {
 		req := httptest.NewRequest("OPTIONS", "/api/test", nil)
-t	req.Header.Set("Origin", "http://localhost:8080") // BUG FIX #1
+	req.Header.Set("Origin", "http://localhost:8080") // BUG FIX #1
 		rec := httptest.NewRecorder()
 
 		handler.ServeHTTP(rec, req)
