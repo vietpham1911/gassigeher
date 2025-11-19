@@ -28,11 +28,34 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 }
 
 // CORSMiddleware adds CORS headers
+// BUG FIX #1: Restrict CORS to specific origins instead of "*"
 func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// Allowed origins for CORS
+		allowedOrigins := []string{
+			"http://localhost:8080",
+			"https://gassi.cuong.net",
+			"https://www.gassi.cuong.net",
+		}
+
+		origin := r.Header.Get("Origin")
+		allowed := false
+		for _, allowedOrigin := range allowedOrigins {
+			if origin == allowedOrigin {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				allowed = true
+				break
+			}
+		}
+
+		// If no origin header or not in allowed list, allow same-origin requests
+		if origin == "" {
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+		}
+
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
@@ -42,6 +65,8 @@ func CORSMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// DONE: BUG #1 FIXED - CORS now restricted to specific allowed origins
 
 // AuthMiddleware validates JWT tokens
 func AuthMiddleware(jwtSecret string) func(http.Handler) http.Handler {
