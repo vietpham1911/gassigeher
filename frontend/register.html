@@ -45,6 +45,9 @@
                     <div class="form-group">
                         <label data-i18n="auth.phone">Telefonnummer</label>
                         <input type="tel" id="phone" name="phone" required
+                               pattern="\+?[0-9\s\-\.\(\)]{7,20}"
+                               placeholder="z.B. 0123 456789 oder +49 123 456789"
+                               title="Bitte geben Sie eine gültige Telefonnummer ein"
                                data-i18n-placeholder="auth.phone">
                         <div class="form-error" id="phone-error"></div>
                     </div>
@@ -140,6 +143,13 @@
                 if (!data.phone) {
                     showError('phone', window.i18n.t('errors.required_field'));
                     hasError = true;
+                } else {
+                    // Validate phone number format
+                    const phonePattern = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+                    if (!phonePattern.test(data.phone)) {
+                        showError('phone', 'Bitte geben Sie eine gültige Telefonnummer ein (z.B. 0123 456789 oder +49 123 456789)');
+                        hasError = true;
+                    }
                 }
 
                 if (data.password.length < 8) {

@@ -52,25 +52,9 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate input
-	if strings.TrimSpace(req.Name) == "" {
-		respondError(w, http.StatusBadRequest, "Name is required")
-		return
-	}
-	if strings.TrimSpace(req.Email) == "" {
-		respondError(w, http.StatusBadRequest, "Email is required")
-		return
-	}
-	if strings.TrimSpace(req.Phone) == "" {
-		respondError(w, http.StatusBadRequest, "Phone is required")
-		return
-	}
-	if req.Password != req.ConfirmPassword {
-		respondError(w, http.StatusBadRequest, "Passwords do not match")
-		return
-	}
-	if !req.AcceptTerms {
-		respondError(w, http.StatusBadRequest, "You must accept the terms and conditions")
+	// Validate input (includes phone number validation)
+	if err := req.Validate(); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 

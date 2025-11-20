@@ -190,7 +190,13 @@
 
                 // Setup filter event listeners
                 setupFilterListeners();
+
+                console.log('[DEBUG] About to check for pending booking...');
+                // Check for pending booking from calendar - AWAIT it!
+                await checkPendingBooking();
+                console.log('[DEBUG] Finished checking for pending booking');
             } catch (error) {
+                console.error('[ERROR] Error in DOMContentLoaded:', error);
                 showAlert('error', error.message || 'Fehler beim Laden');
             }
         });
@@ -256,6 +262,38 @@
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => applyFilters(), 500);
             });
+        }
+
+        async function checkPendingBooking() {
+            console.log('[DEBUG] checkPendingBooking() called');
+            const pendingBookingStr = localStorage.getItem('pendingBooking');
+            console.log('[DEBUG] localStorage pendingBooking:', pendingBookingStr);
+
+            if (!pendingBookingStr) {
+                console.log('[DEBUG] No pending booking found');
+                return;
+            }
+
+            try {
+                const pendingBooking = JSON.parse(pendingBookingStr);
+                const { dogId, date, walkType } = pendingBooking;
+
+                console.log('[DEBUG] Parsed pending booking:', pendingBooking);
+                console.log('[DEBUG] dogId:', dogId, 'date:', date, 'walkType:', walkType);
+
+                // Clear the pending booking immediately
+                localStorage.removeItem('pendingBooking');
+                console.log('[DEBUG] Cleared localStorage');
+
+                // Open booking modal with prefilled data
+                console.log('[DEBUG] About to call showBookingModalWithData...');
+                await showBookingModalWithData(dogId, date, walkType);
+                console.log('[DEBUG] showBookingModalWithData completed');
+            } catch (error) {
+                console.error('[ERROR] Failed to process pending booking:', error);
+                alert('Fehler beim Verarbeiten der Buchung: ' + error.message);
+                localStorage.removeItem('pendingBooking');
+            }
         }
 
         function applyFilters() {
@@ -333,6 +371,9 @@
             const dog = currentDogs.find(d => d.id === dogId);
             if (!dog) return;
 
+            // Reset form first
+            document.getElementById('booking-form').reset();
+
             // Set modal title
             document.getElementById('modal-title').textContent = `Spaziergang buchen - ${dog.name}`;
 
@@ -344,13 +385,64 @@
             document.getElementById('booking-date').min = today;
             document.getElementById('booking-date').value = today;
 
-            // Reset form
-            document.getElementById('booking-form').reset();
-            document.getElementById('booking-dog-id').value = dogId;
             updateTimeOptions();
 
             // Show modal
             document.getElementById('booking-modal').style.display = 'flex';
+        }
+
+        async function showBookingModalWithData(dogId, date, walkType) {
+            console.log('[DEBUG] showBookingModalWithData called with:', {dogId, date, walkType});
+
+            try {
+                // Fetch the dog by ID (works even if dog is not in current filtered list)
+                console.log('[DEBUG] Fetching dog by ID:', dogId);
+                const dog = await api.getDog(dogId);
+                console.log('[DEBUG] Dog fetched:', dog);
+
+                if (!dog) {
+                    console.error('[ERROR] Dog not found for ID:', dogId);
+                    showAlert('error', 'Hund nicht gefunden');
+                    alert('Hund nicht gefunden - ID: ' + dogId);
+                    return;
+                }
+
+                // Reset form first
+                console.log('[DEBUG] Resetting form');
+                document.getElementById('booking-form').reset();
+
+                // Set modal title
+                console.log('[DEBUG] Setting modal title:', dog.name);
+                document.getElementById('modal-title').textContent = `Spaziergang buchen - ${dog.name}`;
+
+                // Set dog ID
+                console.log('[DEBUG] Setting dog ID');
+                document.getElementById('booking-dog-id').value = dogId;
+
+                // Set minimum date to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('booking-date').min = today;
+
+                // Set date and walk type from calendar
+                console.log('[DEBUG] Setting date:', date, 'and walkType:', walkType);
+                document.getElementById('booking-date').value = date;
+                document.getElementById('booking-walk-type').value = walkType;
+
+                console.log('[DEBUG] Updating time options');
+                updateTimeOptions();
+
+                // Show modal
+                console.log('[DEBUG] Showing modal');
+                document.getElementById('booking-modal').style.display = 'flex';
+                console.log('[DEBUG] Modal display set to flex');
+
+                showAlert('info', 'Buchung aus Kalender geladen. Bitte Uhrzeit wählen und bestätigen.');
+                console.log('[DEBUG] showBookingModalWithData completed successfully');
+            } catch (error) {
+                console.error('[ERROR] Exception in showBookingModalWithData:', error);
+                showAlert('error', 'Fehler beim Laden des Hundes: ' + (error.message || 'Unbekannter Fehler'));
+                alert('FEHLER: ' + error.message);
+            }
         }
 
         function closeBookingModal() {
@@ -383,19 +475,29 @@
 
         async function submitBooking(event) {
             event.preventDefault();
+            console.log('[BOOKING DEBUG] submitBooking called');
 
             const dogId = parseInt(document.getElementById('booking-dog-id').value);
             const date = document.getElementById('booking-date').value;
             const walkType = document.getElementById('booking-walk-type').value;
             const time = document.getElementById('booking-time').value;
 
+            console.log('[BOOKING DEBUG] Form values:', {dogId, date, walkType, time});
+            console.log('[BOOKING DEBUG] Is authenticated?', api.isAuthenticated());
+            console.log('[BOOKING DEBUG] Token:', api.getToken());
+
+            const bookingData = {
+                dog_id: dogId,
+                date: date,
+                walk_type: walkType,
+                scheduled_time: time
+            };
+            console.log('[BOOKING DEBUG] Booking data to send:', bookingData);
+
             try {
-                const booking = await api.createBooking({
-                    dog_id: dogId,
-                    date: date,
-                    walk_type: walkType,
-                    scheduled_time: time
-                });
+                console.log('[BOOKING DEBUG] Calling api.createBooking...');
+                const booking = await api.createBooking(bookingData);
+                console.log('[BOOKING DEBUG] Booking created successfully:', booking);
 
                 closeBookingModal();
                 showAlert('success', 'Buchung erfolgreich erstellt! Sie erhalten eine Bestätigung per E-Mail.');
@@ -405,7 +507,11 @@
                     window.location.href = '/dashboard.html';
                 }, 2000);
             } catch (error) {
+                console.error('[BOOKING ERROR] Failed to create booking:', error);
+                console.error('[BOOKING ERROR] Error message:', error.message);
+                console.error('[BOOKING ERROR] Error stack:', error.stack);
                 showAlert('error', error.message || 'Fehler beim Erstellen der Buchung');
+                alert('BOOKING FEHLER: ' + error.message + '\n\nBitte prüfen Sie die Konsole für Details.');
             }
         }
 

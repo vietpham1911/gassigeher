@@ -184,9 +184,9 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Willkommen zurück",
-    "upcoming_walks": "Anstehende Spaziergänge",
+    "upcoming_walks": "Deine anstehenden Spaziergänge",
     "walk_history": "Spaziergangshistorie",
-    "no_upcoming_walks": "Keine anstehenden Spaziergänge",
+    "no_upcoming_walks": "Du hast keine anstehenden Spaziergänge",
     "book_a_walk": "Spaziergang buchen",
     "view_all_dogs": "Alle Hunde anzeigen"
   },

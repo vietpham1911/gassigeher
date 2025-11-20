@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tranm/gassigeher/internal/config"
+	"github.com/tranm/gassigeher/internal/middleware"
 	"github.com/tranm/gassigeher/internal/models"
 	"github.com/tranm/gassigeher/internal/repository"
 )
@@ -42,7 +43,7 @@ func (h *BlockedDateHandler) ListBlockedDates(w http.ResponseWriter, r *http.Req
 // CreateBlockedDate creates a new blocked date (admin only)
 func (h *BlockedDateHandler) CreateBlockedDate(w http.ResponseWriter, r *http.Request) {
 	// Get admin user ID from context
-	userID, _ := r.Context().Value("user_id").(int)
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	// Parse request
 	var req models.CreateBlockedDateRequest

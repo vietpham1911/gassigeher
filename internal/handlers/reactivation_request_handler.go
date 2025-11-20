@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tranm/gassigeher/internal/config"
+	"github.com/tranm/gassigeher/internal/middleware"
 	"github.com/tranm/gassigeher/internal/models"
 	"github.com/tranm/gassigeher/internal/repository"
 	"github.com/tranm/gassigeher/internal/services"
@@ -131,7 +132,7 @@ func (h *ReactivationRequestHandler) ApproveRequest(w http.ResponseWriter, r *ht
 	}
 
 	// Get admin user ID
-	reviewerID, _ := r.Context().Value("user_id").(int)
+	reviewerID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	// Parse request body
 	var req models.ReviewReactivationRequestRequest
@@ -199,7 +200,7 @@ func (h *ReactivationRequestHandler) DenyRequest(w http.ResponseWriter, r *http.
 	}
 
 	// Get admin user ID
-	reviewerID, _ := r.Context().Value("user_id").(int)
+	reviewerID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	// Parse request body
 	var req models.ReviewReactivationRequestRequest

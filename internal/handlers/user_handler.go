@@ -55,6 +55,9 @@ func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get admin status from context
+	isAdmin, _ := r.Context().Value(middleware.IsAdminKey).(bool)
+
 	user, err := h.userRepo.FindByID(userID)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Database error")
@@ -70,7 +73,19 @@ func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	user.VerificationToken = nil
 	user.PasswordResetToken = nil
 
-	respondJSON(w, http.StatusOK, user)
+	// Create response with user data + is_admin flag
+	// Keep user fields at top level for backward compatibility
+	type UserResponse struct {
+		*models.User
+		IsAdmin bool `json:"is_admin"`
+	}
+
+	response := &UserResponse{
+		User:    user,
+		IsAdmin: isAdmin,
+	}
+
+	respondJSON(w, http.StatusOK, response)
 }
 
 // UpdateMe updates the current user's profile
@@ -84,6 +99,12 @@ func (h *UserHandler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 	var req models.UpdateProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Validate input (includes phone number validation)
+	if err := req.Validate(); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 

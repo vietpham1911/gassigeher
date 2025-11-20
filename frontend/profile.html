@@ -56,7 +56,13 @@
                     </div>
                     <div class="form-group">
                         <label data-i18n="auth.phone">Telefonnummer</label>
-                        <input type="tel" id="edit-phone" required>
+                        <input type="tel" id="edit-phone" required
+                               pattern="\+?[0-9\s\-\.\(\)]{7,20}"
+                               placeholder="z.B. 0123 456789 oder +49 123 456789"
+                               title="Bitte geben Sie eine gültige Telefonnummer ein (z.B. 0123 456789 oder +49 123 456789)">
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+                            Format: z.B. 0123 456789, +49 123 456789 oder 0123-456789
+                        </p>
                     </div>
                     <button type="submit" class="btn" data-i18n="common.save">Speichern</button>
                 </form>
@@ -271,9 +277,23 @@
         async function handleProfileUpdate(e) {
             e.preventDefault();
 
+            // Check HTML5 form validity first
+            const form = e.target;
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
             const name = document.getElementById('edit-name').value;
             const email = document.getElementById('edit-email').value;
             const phone = document.getElementById('edit-phone').value;
+
+            // Additional phone validation
+            const phonePattern = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+            if (!phonePattern.test(phone)) {
+                showAlert('error', 'Bitte geben Sie eine gültige Telefonnummer ein (z.B. 0123 456789 oder +49 123 456789)');
+                return;
+            }
 
             try {
                 const response = await api.updateMe({ name, email, phone });

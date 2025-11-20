@@ -70,6 +70,20 @@
                 return;
             }
 
+            // Check if user is admin
+            try {
+                const userData = await api.getMe();
+                if (!userData.is_admin) {
+                    alert('Zugriff verweigert: Diese Seite ist nur für Administratoren zugänglich.');
+                    window.location.href = '/dashboard.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Failed to verify admin status:', error);
+                window.location.href = '/dashboard.html';
+                return;
+            }
+
             await window.i18n.load();
             loadBlockedDates();
 

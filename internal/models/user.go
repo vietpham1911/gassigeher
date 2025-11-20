@@ -1,6 +1,9 @@
 package models
 
 import (
+	"errors"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -83,4 +86,61 @@ type UpdateProfileRequest struct {
 	Name  *string `json:"name,omitempty"`
 	Email *string `json:"email,omitempty"`
 	Phone *string `json:"phone,omitempty"`
+}
+
+// Phone number validation regex - supports international formats
+var phoneRegex = regexp.MustCompile(`^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$`)
+
+// ValidatePhone validates a phone number format
+func ValidatePhone(phone string) error {
+	phone = strings.TrimSpace(phone)
+	if phone == "" {
+		return errors.New("Telefonnummer ist erforderlich")
+	}
+	if !phoneRegex.MatchString(phone) {
+		return errors.New("Ungültige Telefonnummer. Bitte verwenden Sie ein gültiges Format (z.B. 0123 456789 oder +49 123 456789)")
+	}
+	return nil
+}
+
+// Validate validates the RegisterRequest
+func (r *RegisterRequest) Validate() error {
+	if strings.TrimSpace(r.Name) == "" {
+		return errors.New("Name ist erforderlich")
+	}
+	if strings.TrimSpace(r.Email) == "" {
+		return errors.New("E-Mail ist erforderlich")
+	}
+	if err := ValidatePhone(r.Phone); err != nil {
+		return err
+	}
+	if r.Password == "" {
+		return errors.New("Passwort ist erforderlich")
+	}
+	if len(r.Password) < 8 {
+		return errors.New("Passwort muss mindestens 8 Zeichen lang sein")
+	}
+	if r.Password != r.ConfirmPassword {
+		return errors.New("Passwörter stimmen nicht überein")
+	}
+	if !r.AcceptTerms {
+		return errors.New("Sie müssen die AGB akzeptieren")
+	}
+	return nil
+}
+
+// Validate validates the UpdateProfileRequest
+func (u *UpdateProfileRequest) Validate() error {
+	if u.Name != nil && strings.TrimSpace(*u.Name) == "" {
+		return errors.New("Name darf nicht leer sein")
+	}
+	if u.Email != nil && strings.TrimSpace(*u.Email) == "" {
+		return errors.New("E-Mail darf nicht leer sein")
+	}
+	if u.Phone != nil {
+		if err := ValidatePhone(*u.Phone); err != nil {
+			return err
+		}
+	}
+	return nil
 }

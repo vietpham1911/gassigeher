@@ -115,9 +115,24 @@
         async function loadUpcomingBookings() {
             try {
                 const today = new Date().toISOString().split('T')[0];
+                console.log('[DASHBOARD DEBUG] Fetching bookings from:', today, 'with status: scheduled');
+                console.log('[DASHBOARD DEBUG] NOT using calendar_view, so should see only MY bookings');
+
                 const bookings = await api.getBookings({
                     date_from: today,
                     status: 'scheduled'
+                });
+
+                console.log('[DASHBOARD DEBUG] Received', bookings.length, 'upcoming bookings:');
+                bookings.forEach(b => {
+                    console.log('[DASHBOARD DEBUG] Booking:', {
+                        id: b.id,
+                        dog_id: b.dog_id,
+                        date: b.date,
+                        walk_type: b.walk_type,
+                        status: b.status,
+                        user_id: b.user_id
+                    });
                 });
 
                 const container = document.getElementById('upcoming-bookings');

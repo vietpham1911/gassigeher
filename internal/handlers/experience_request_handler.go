@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tranm/gassigeher/internal/config"
+	"github.com/tranm/gassigeher/internal/middleware"
 	"github.com/tranm/gassigeher/internal/models"
 	"github.com/tranm/gassigeher/internal/repository"
 	"github.com/tranm/gassigeher/internal/services"
@@ -47,7 +48,7 @@ func NewExperienceRequestHandler(db *sql.DB, cfg *config.Config) *ExperienceRequ
 // CreateRequest creates a new experience level request
 func (h *ExperienceRequestHandler) CreateRequest(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context
-	userID, ok := r.Context().Value("user_id").(int)
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
 	if !ok {
 		respondError(w, http.StatusUnauthorized, "Unauthorized")
 		return
@@ -124,8 +125,8 @@ func (h *ExperienceRequestHandler) CreateRequest(w http.ResponseWriter, r *http.
 // ListRequests lists experience requests (user sees own, admin sees all pending)
 func (h *ExperienceRequestHandler) ListRequests(w http.ResponseWriter, r *http.Request) {
 	// Get user ID and admin status from context
-	userID, _ := r.Context().Value("user_id").(int)
-	isAdmin, _ := r.Context().Value("is_admin").(bool)
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+	isAdmin, _ := r.Context().Value(middleware.IsAdminKey).(bool)
 
 	var requests []*models.ExperienceRequest
 	var err error
@@ -167,7 +168,7 @@ func (h *ExperienceRequestHandler) ApproveRequest(w http.ResponseWriter, r *http
 	}
 
 	// Get admin user ID
-	reviewerID, _ := r.Context().Value("user_id").(int)
+	reviewerID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	// Parse request body
 	var req models.ReviewExperienceRequestRequest
@@ -236,7 +237,7 @@ func (h *ExperienceRequestHandler) DenyRequest(w http.ResponseWriter, r *http.Re
 	}
 
 	// Get admin user ID
-	reviewerID, _ := r.Context().Value("user_id").(int)
+	reviewerID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	// Parse request body
 	var req models.ReviewExperienceRequestRequest

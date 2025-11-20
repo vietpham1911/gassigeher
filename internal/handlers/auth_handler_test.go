@@ -71,7 +71,7 @@ func TestAuthHandler_Register(t *testing.T) {
 					"confirm_password": "Test1234",
 					"accept_terms":     true,
 				},
-				expected: "Name is required",
+				expected: "Name ist erforderlich",
 			},
 			{
 				name: "missing email",
@@ -82,7 +82,7 @@ func TestAuthHandler_Register(t *testing.T) {
 					"confirm_password": "Test1234",
 					"accept_terms":     true,
 				},
-				expected: "Email is required",
+				expected: "E-Mail ist erforderlich",
 			},
 			{
 				name: "missing phone",
@@ -93,7 +93,7 @@ func TestAuthHandler_Register(t *testing.T) {
 					"confirm_password": "Test1234",
 					"accept_terms":     true,
 				},
-				expected: "Phone is required",
+				expected: "Telefonnummer ist erforderlich",
 			},
 		}
 
@@ -138,7 +138,7 @@ func TestAuthHandler_Register(t *testing.T) {
 			t.Errorf("Expected status 400, got %d", rec.Code)
 		}
 
-		if !strings.Contains(rec.Body.String(), "do not match") {
+		if !strings.Contains(rec.Body.String(), "stimmen nicht überein") {
 			t.Errorf("Expected password mismatch error, got: %s", rec.Body.String())
 		}
 	})

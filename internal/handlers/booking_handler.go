@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tranm/gassigeher/internal/config"
+	"github.com/tranm/gassigeher/internal/middleware"
 	"github.com/tranm/gassigeher/internal/models"
 	"github.com/tranm/gassigeher/internal/repository"
 	"github.com/tranm/gassigeher/internal/services"
@@ -56,7 +57,7 @@ func NewBookingHandler(db *sql.DB, cfg *config.Config) *BookingHandler {
 // CreateBooking creates a new booking
 func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context
-	userID, ok := r.Context().Value("user_id").(int)
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
 	if !ok {
 		respondError(w, http.StatusUnauthorized, "Unauthorized")
 		return
@@ -204,8 +205,8 @@ func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 // ListBookings lists bookings
 func (h *BookingHandler) ListBookings(w http.ResponseWriter, r *http.Request) {
 	// Get user ID and admin status from context
-	userID, _ := r.Context().Value("user_id").(int)
-	isAdmin, _ := r.Context().Value("is_admin").(bool)
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+	isAdmin, _ := r.Context().Value(middleware.IsAdminKey).(bool)
 
 	// Parse query parameters
 	filter := &models.BookingFilterRequest{}
@@ -231,11 +232,15 @@ func (h *BookingHandler) ListBookings(w http.ResponseWriter, r *http.Request) {
 		filter.WalkType = &walkType
 	}
 
-	// Non-admins can only see their own bookings
-	if !isAdmin {
+	// Check if this is a calendar view request (needs to see ALL bookings for availability)
+	isCalendarView := r.URL.Query().Get("calendar_view") == "true"
+
+	// Non-admins can only see their own bookings UNLESS it's for calendar availability view
+	if !isAdmin && !isCalendarView {
 		filter.UserID = &userID
-	} else if userIDStr := r.URL.Query().Get("user_id"); userIDStr != "" {
-		uid, _ := strconv.Atoi(userIDStr)
+	} else if isAdmin && r.URL.Query().Get("user_id") != "" {
+		// Admin can filter by specific user
+		uid, _ := strconv.Atoi(r.URL.Query().Get("user_id"))
 		filter.UserID = &uid
 	}
 
@@ -260,8 +265,8 @@ func (h *BookingHandler) GetBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user ID and admin status
-	userID, _ := r.Context().Value("user_id").(int)
-	isAdmin, _ := r.Context().Value("is_admin").(bool)
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+	isAdmin, _ := r.Context().Value(middleware.IsAdminKey).(bool)
 
 	// Get booking
 	booking, err := h.bookingRepo.FindByID(id)
@@ -294,8 +299,8 @@ func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user ID and admin status
-	userID, _ := r.Context().Value("user_id").(int)
-	isAdmin, _ := r.Context().Value("is_admin").(bool)
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+	isAdmin, _ := r.Context().Value(middleware.IsAdminKey).(bool)
 
 	// Parse request
 	var req models.CancelBookingRequest
@@ -340,13 +345,42 @@ func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Parse booking date and time
-		bookingDateTime := booking.Date + " " + booking.ScheduledTime
-		bookingTime, _ := time.Parse("2006-01-02 15:04", bookingDateTime)
+		// booking.Date comes from DB as ISO 8601 format (e.g., "2025-11-27T00:00:00Z")
+		// We need to extract just the date part (YYYY-MM-DD) and combine with scheduled time
+		fmt.Printf("[CANCEL DEBUG] Raw booking.Date from DB: '%s'\n", booking.Date)
+		fmt.Printf("[CANCEL DEBUG] Raw booking.ScheduledTime from DB: '%s'\n", booking.ScheduledTime)
+
+		// Parse the ISO date first to get a time.Time object
+		dateOnly, err := time.Parse(time.RFC3339, booking.Date)
+		if err != nil {
+			// Try simple date format as fallback
+			dateOnly, err = time.Parse("2006-01-02", booking.Date)
+			if err != nil {
+				fmt.Printf("[CANCEL ERROR] Failed to parse booking date: %v\n", err)
+				respondError(w, http.StatusInternalServerError, "Failed to parse booking date: "+err.Error())
+				return
+			}
+		}
+
+		// Format date as YYYY-MM-DD and combine with time
+		dateStr := dateOnly.Format("2006-01-02")
+		bookingDateTime := dateStr + " " + booking.ScheduledTime
+		fmt.Printf("[CANCEL DEBUG] Combined datetime string: '%s'\n", bookingDateTime)
+
+		bookingTime, err := time.Parse("2006-01-02 15:04", bookingDateTime)
+		if err != nil {
+			fmt.Printf("[CANCEL ERROR] Failed to parse booking datetime: %v\n", err)
+			respondError(w, http.StatusInternalServerError, "Failed to parse booking date/time: "+err.Error())
+			return
+		}
+
 		now := time.Now()
 		hoursUntilBooking := bookingTime.Sub(now).Hours()
+		fmt.Printf("[CANCEL DEBUG] Booking time: %v, Now: %v, Hours until: %.2f, Required: %d\n",
+			bookingTime, now, hoursUntilBooking, noticeHours)
 
 		if hoursUntilBooking < float64(noticeHours) {
-			respondError(w, http.StatusBadRequest, fmt.Sprintf("Bookings must be cancelled at least %d hours in advance", noticeHours))
+			respondError(w, http.StatusBadRequest, fmt.Sprintf("Buchungen müssen mindestens %d Stunden im Voraus storniert werden. Verbleibende Zeit: %.1f Stunden", noticeHours, hoursUntilBooking))
 			return
 		}
 	}
@@ -385,7 +419,7 @@ func (h *BookingHandler) AddNotes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user ID
-	userID, _ := r.Context().Value("user_id").(int)
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	// Parse request
 	var req models.AddNotesRequest
@@ -442,7 +476,7 @@ func (h *BookingHandler) MoveBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get admin user ID
-	userID, _ := r.Context().Value("user_id").(int)
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	// Parse request
 	var req models.MoveBookingRequest
@@ -549,7 +583,7 @@ func (h *BookingHandler) GetCalendarData(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get user ID from context
-	userID, _ := r.Context().Value("user_id").(int)
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	// Get bookings for the month
 	filter := &models.BookingFilterRequest{
