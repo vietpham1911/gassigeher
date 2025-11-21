@@ -10,14 +10,14 @@ This index helps you navigate the complete Gassigeher documentation suite.
 
 | Document | Size | Audience | Purpose |
 |----------|------|----------|---------|
-| **[README.md](README.md)** | 500+ lines | Everyone | Start here - Overview, setup, quick start |
+| **[README.md](../README.md)** | 500+ lines | Everyone | Start here - Overview, setup, quick start |
 | **[ImplementationPlan.md](ImplementationPlan.md)** | 1,500+ lines | Tech Leads | Complete architecture, all 10 phases |
 | **[API.md](API.md)** | 600+ lines | Developers | REST API reference (50+ endpoints) |
 | **[DEPLOYMENT.md](DEPLOYMENT.md)** | 400+ lines | DevOps | Production deployment guide |
 | **[USER_GUIDE.md](USER_GUIDE.md)** | 350+ lines | End Users | How to use the app (German) |
 | **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** | 500+ lines | Admins | Operations & management |
 | **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** | 500+ lines | Stakeholders | Executive summary |
-| **[CLAUDE.md](CLAUDE.md)** | 400+ lines | AI/Devs | Development patterns |
+| **[CLAUDE.md](../CLAUDE.md)** | 400+ lines | AI/Devs | Development patterns |
 
 **Total**: 6,150+ lines of comprehensive documentation
 
@@ -47,12 +47,12 @@ This index helps you navigate the complete Gassigeher documentation suite.
 ---
 
 ### 👨‍💻 I'm a Developer
-**Start**: [README.md](README.md)
+**Start**: [README.md](../README.md)
 - Quick start guide
 - Build and test commands
 - Project structure
 
-**Then**: [CLAUDE.md](CLAUDE.md) - Development patterns and architecture
+**Then**: [CLAUDE.md](../CLAUDE.md) - Development patterns and architecture
 **Reference**: [API.md](API.md) - Complete API docs
 **Deep Dive**: [ImplementationPlan.md](ImplementationPlan.md) - Full architecture
 
@@ -65,7 +65,7 @@ This index helps you navigate the complete Gassigeher documentation suite.
 - Backup configuration
 - Security checklist
 
-**Reference**: [README.md](README.md) - Environment variables
+**Reference**: [../README.md](../README.md) - Environment variables
 **After Deploy**: Share [USER_GUIDE.md](USER_GUIDE.md) and [ADMIN_GUIDE.md](ADMIN_GUIDE.md)
 
 ---
@@ -84,13 +84,13 @@ This index helps you navigate the complete Gassigeher documentation suite.
 ## Documentation by Topic
 
 ### Getting Started
-- [README.md](README.md) - Quick start guide
+- [README.md](../README.md) - Quick start guide
 - [USER_GUIDE.md](USER_GUIDE.md) - User onboarding
 - [ADMIN_GUIDE.md](ADMIN_GUIDE.md) - Admin onboarding
 
 ### Technical Reference
 - [API.md](API.md) - All endpoints with examples
-- [CLAUDE.md](CLAUDE.md) - Architecture and patterns
+- [CLAUDE.md](../CLAUDE.md) - Architecture and patterns
 - [ImplementationPlan.md](ImplementationPlan.md) - Database schema, models
 
 ### Operations
@@ -106,7 +106,7 @@ This index helps you navigate the complete Gassigeher documentation suite.
 - [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - GDPR implementation details
 
 ### Development
-- [CLAUDE.md](CLAUDE.md) - Development guide
+- [CLAUDE.md](../CLAUDE.md) - Development guide
 - [API.md](API.md) - Endpoint reference
 - Test files: `internal/*/test.go`
 
@@ -134,7 +134,7 @@ This index helps you navigate the complete Gassigeher documentation suite.
 - System settings configuration
 
 ### Technical Features
-**Documented in**: [CLAUDE.md](CLAUDE.md) + [ImplementationPlan.md](ImplementationPlan.md)
+**Documented in**: [CLAUDE.md](../CLAUDE.md) + [ImplementationPlan.md](ImplementationPlan.md)
 - JWT authentication
 - GDPR anonymization
 - Email system (17 types)

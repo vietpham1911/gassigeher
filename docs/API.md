@@ -4,7 +4,7 @@
 
 **Status**: ✅ All 50+ endpoints implemented and documented
 
-> **Quick Links**: [README](README.md) | [Deployment](DEPLOYMENT.md) | [User Guide](USER_GUIDE.md) | [Admin Guide](ADMIN_GUIDE.md)
+> **Quick Links**: [README](../README.md) | [Deployment](DEPLOYMENT.md) | [User Guide](USER_GUIDE.md) | [Admin Guide](ADMIN_GUIDE.md)
 
 ---
 
@@ -860,15 +860,15 @@ const user = await api.getMe();
 const dogs = await api.getDogs({ category: 'green' });
 ```
 
-See [CLAUDE.md](CLAUDE.md) for development guide.
+See [CLAUDE.md](../CLAUDE.md) for development guide.
 
 ---
 
 ## Related Documentation
 
 **For Implementation:**
-- [CLAUDE.md](CLAUDE.md) - Development guide with architecture
-- [README.md](README.md) - Project setup and overview
+- [CLAUDE.md](../CLAUDE.md) - Development guide with architecture
+- [README.md](../README.md) - Project setup and overview
 - [ImplementationPlan.md](ImplementationPlan.md) - Complete architecture
 
 **For Deployment:**

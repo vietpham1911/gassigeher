@@ -9,9 +9,9 @@ Gassigeher is a **complete production-ready** dog walking booking system for ani
 **Status**: ✅ Production ready, fully functional, deployment package included.
 
 > **Essential Reading**:
-> - [ImplementationPlan.md](ImplementationPlan.md) - Complete architecture, all 10 phases
-> - [API.md](API.md) - All 50+ endpoints with request/response examples
-> - [DEPLOYMENT.md](DEPLOYMENT.md) - Production deployment steps
+> - [ImplementationPlan.md](docs/ImplementationPlan.md) - Complete architecture, all 10 phases
+> - [API.md](docs/API.md) - All 50+ endpoints with request/response examples
+> - [DEPLOYMENT.md](docs/DEPLOYMENT.md) - Production deployment steps
 
 ---
 
@@ -416,12 +416,12 @@ Implementation: `internal/handlers/experience_request_handler.go` → `CreateReq
 ## Documentation Files
 
 Read these for context:
-- `ImplementationPlan.md` - Complete architecture, all 10 phases
-- `API.md` - All 50+ endpoints with examples
-- `USER_GUIDE.md` - User features and workflows
-- `ADMIN_GUIDE.md` - Admin operations and best practices
-- `DEPLOYMENT.md` - Production deployment steps
-- `PROJECT_SUMMARY.md` - Executive overview
+- [ImplementationPlan.md](docs/ImplementationPlan.md) - Complete architecture, all 10 phases
+- [API.md](docs/API.md) - All 50+ endpoints with examples
+- [USER_GUIDE.md](docs/USER_GUIDE.md) - User features and workflows
+- [ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md) - Admin operations and best practices
+- [DEPLOYMENT.md](docs/DEPLOYMENT.md) - Production deployment steps
+- [PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md) - Executive overview
 
 ## Testing Philosophy
 
@@ -614,10 +614,10 @@ This codebase follows clean architecture principles with clear separation of con
 ### Essential Context Files
 
 Before making changes, read:
-1. **ImplementationPlan.md** - See which phase the feature belongs to
-2. **API.md** - Check existing endpoint patterns
-3. **ADMIN_GUIDE.md** - Understand admin workflows (if admin feature)
-4. **USER_GUIDE.md** - Understand user workflows (if user feature)
+1. **[ImplementationPlan.md](docs/ImplementationPlan.md)** - See which phase the feature belongs to
+2. **[API.md](docs/API.md)** - Check existing endpoint patterns
+3. **[ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md)** - Understand admin workflows (if admin feature)
+4. **[USER_GUIDE.md](docs/USER_GUIDE.md)** - Understand user workflows (if user feature)
 
 ---
 
@@ -626,17 +626,17 @@ Before making changes, read:
 | Document | Lines | Purpose |
 |----------|-------|---------|
 | [README.md](README.md) | 500+ | Project overview, setup, quick start |
-| [ImplementationPlan.md](ImplementationPlan.md) | 1,500+ | Architecture, all 10 phases, database schema |
-| [API.md](API.md) | 600+ | Complete REST API reference |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | 400+ | Production deployment guide |
-| [USER_GUIDE.md](USER_GUIDE.md) | 350+ | User manual (German) |
-| [ADMIN_GUIDE.md](ADMIN_GUIDE.md) | 500+ | Administrator handbook |
-| [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | 500+ | Executive summary |
+| [ImplementationPlan.md](docs/ImplementationPlan.md) | 1,500+ | Architecture, all 10 phases, database schema |
+| [API.md](docs/API.md) | 600+ | Complete REST API reference |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | 400+ | Production deployment guide |
+| [USER_GUIDE.md](docs/USER_GUIDE.md) | 350+ | User manual (German) |
+| [ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md) | 500+ | Administrator handbook |
+| [PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md) | 500+ | Executive summary |
 | [CLAUDE.md](CLAUDE.md) | 400+ | This file - AI development guide |
 
 **Total**: 6,150+ lines of documentation across 9 files
 
-**Navigation**: See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) for quick access guide
+**Navigation**: See [DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) for quick access guide
 
 ---
 

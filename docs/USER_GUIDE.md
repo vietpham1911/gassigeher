@@ -316,7 +316,7 @@ Wir helfen Ihnen gerne!
 - [ADMIN_GUIDE.md](ADMIN_GUIDE.md) - Umfassendes Administrator-Handbuch
 
 **Technische Dokumentation:**
-- [README.md](README.md) - Projektübersicht
+- [README.md](../README.md) - Projektübersicht
 - [API.md](API.md) - API-Referenz für Entwickler
 
 **Rechtliches:**

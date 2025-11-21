@@ -27,7 +27,7 @@ bat.bat         # Windows
 # 4. Visit http://localhost:8080
 ```
 
-For production deployment, see **DEPLOYMENT.md**.
+For production deployment, see **[DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
 ---
 
@@ -334,7 +334,7 @@ The application uses SQLite with automatic migrations. The database file is crea
 - **Frontend**: Manual testing complete for all features
 - **Security**: Headers, XSS protection, password validation
 
-See `ImplementationPlan.md` for complete phase details.
+See [ImplementationPlan.md](docs/ImplementationPlan.md) for complete phase details.
 
 ## Development Notes
 
@@ -441,21 +441,21 @@ The application implements multiple security measures:
 
 **📚 Complete documentation suite: 6,150+ lines across 9 comprehensive guides**
 
-See **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** for navigation guide.
+See **[DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md)** for navigation guide.
 
 | Document | Lines | Purpose | Audience |
 |----------|-------|---------|----------|
 | **[README.md](README.md)** | 500+ | Project overview, setup, API list | Developers |
-| **[ImplementationPlan.md](ImplementationPlan.md)** | 1,500+ | Complete architecture & all 10 phases | Technical Leads |
-| **[API.md](API.md)** | 600+ | Complete REST API reference with examples | Developers/Integrators |
-| **[DEPLOYMENT.md](DEPLOYMENT.md)** | 400+ | Step-by-step production deployment | DevOps/System Admins |
-| **[USER_GUIDE.md](USER_GUIDE.md)** | 350+ | How to use the application (German) | End Users |
-| **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** | 500+ | Administrator operations manual | Administrators |
-| **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** | 500+ | Executive summary & statistics | Stakeholders |
+| **[ImplementationPlan.md](docs/ImplementationPlan.md)** | 1,500+ | Complete architecture & all 10 phases | Technical Leads |
+| **[API.md](docs/API.md)** | 600+ | Complete REST API reference with examples | Developers/Integrators |
+| **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** | 400+ | Step-by-step production deployment | DevOps/System Admins |
+| **[USER_GUIDE.md](docs/USER_GUIDE.md)** | 350+ | How to use the application (German) | End Users |
+| **[ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md)** | 500+ | Administrator operations manual | Administrators |
+| **[PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md)** | 500+ | Executive summary & statistics | Stakeholders |
 | **[CLAUDE.md](CLAUDE.md)** | 400+ | AI assistant development guide | AI Developers |
-| **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** | 200+ | Documentation navigation | Everyone |
+| **[DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md)** | 200+ | Documentation navigation | Everyone |
 
-**Not sure where to start?** See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md).
+**Not sure where to start?** See [DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md).
 
 ## Getting Started Guide
 
@@ -466,7 +466,7 @@ See **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** for navigation guide.
 4. Login and start browsing dogs
 5. Book your first walk!
 
-**Read**: [USER_GUIDE.md](USER_GUIDE.md) for complete instructions.
+**Read**: [USER_GUIDE.md](docs/USER_GUIDE.md) for complete instructions.
 
 ### For Administrators
 1. Ensure your email is in `ADMIN_EMAILS` environment variable
@@ -474,7 +474,7 @@ See **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** for navigation guide.
 3. Login - you'll be redirected to admin dashboard
 4. Start managing dogs, users, and bookings
 
-**Read**: [ADMIN_GUIDE.md](ADMIN_GUIDE.md) for complete operations guide.
+**Read**: [ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md) for complete operations guide.
 
 ### For Developers
 1. Clone repository
@@ -483,16 +483,16 @@ See **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** for navigation guide.
 4. Run `./bat.sh` (Linux/Mac) or `bat.bat` (Windows)
 5. Visit `http://localhost:8080`
 
-**Read**: [CLAUDE.md](CLAUDE.md) for development guide and [API.md](API.md) for endpoints.
+**Read**: [CLAUDE.md](CLAUDE.md) for development guide and [API.md](docs/API.md) for endpoints.
 
 ### For DevOps
 1. Provision Ubuntu 22.04 server
-2. Follow [DEPLOYMENT.md](DEPLOYMENT.md) step-by-step
+2. Follow [DEPLOYMENT.md](docs/DEPLOYMENT.md) step-by-step
 3. Configure SSL with Let's Encrypt
 4. Setup automated backups
 5. Monitor and maintain
 
-**Read**: [DEPLOYMENT.md](DEPLOYMENT.md) for complete production setup.
+**Read**: [DEPLOYMENT.md](docs/DEPLOYMENT.md) for complete production setup.
 
 ## Project Statistics
 

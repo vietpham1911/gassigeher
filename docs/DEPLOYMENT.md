@@ -6,7 +6,7 @@
 
 > **Prerequisites**: Ubuntu 22.04 LTS, root access, domain name, Gmail API credentials
 > **Deployment Time**: ~1-2 hours for complete setup
-> **Quick Links**: [README](README.md) | [API Docs](API.md) | [Admin Guide](ADMIN_GUIDE.md)
+> **Quick Links**: [README](../README.md) | [API Docs](API.md) | [Admin Guide](ADMIN_GUIDE.md)
 
 ---
 
@@ -505,12 +505,12 @@ For high traffic:
 - [API.md](API.md) - For developers/integrations
 
 **Technical Reference:**
-- [README.md](README.md) - Project overview
+- [README.md](../README.md) - Project overview
 - [ImplementationPlan.md](ImplementationPlan.md) - Complete architecture
 - [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - Executive summary
 
 **For Developers:**
-- [CLAUDE.md](CLAUDE.md) - Development guide
+- [CLAUDE.md](../CLAUDE.md) - Development guide
 
 ---
 

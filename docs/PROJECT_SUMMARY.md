@@ -7,7 +7,7 @@
 **Result**: Production-ready dog walking booking system
 
 > **Quick Access**:
-> - 📖 [README](README.md) - Project overview and setup
+> - 📖 [README](../README.md) - Project overview and setup
 > - 🔧 [DEPLOYMENT](DEPLOYMENT.md) - Production deployment guide
 > - 📚 [USER_GUIDE](USER_GUIDE.md) - User manual (German)
 > - 👨‍💼 [ADMIN_GUIDE](ADMIN_GUIDE.md) - Administrator handbook
@@ -725,13 +725,13 @@ This is one of 8 comprehensive documentation files:
 
 | Document | Purpose |
 |----------|---------|
-| [README.md](README.md) | Project overview, quick start, features |
+| [README.md](../README.md) | Project overview, quick start, features |
 | [ImplementationPlan.md](ImplementationPlan.md) | Complete architecture, all 10 phases |
 | [API.md](API.md) | REST API reference (50+ endpoints) |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Production deployment guide |
 | [USER_GUIDE.md](USER_GUIDE.md) | User manual in German |
 | [ADMIN_GUIDE.md](ADMIN_GUIDE.md) | Administrator handbook |
 | [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | This document |
-| [CLAUDE.md](CLAUDE.md) | AI development guide |
+| [CLAUDE.md](../CLAUDE.md) | AI development guide |
 
-**Start here**: [README.md](README.md) for quick start guide.
+**Start here**: [README.md](../README.md) for quick start guide.

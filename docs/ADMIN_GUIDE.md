@@ -664,9 +664,9 @@ Bei Fragen: support@gassigeher.example.com
 - [API.md](API.md) - Complete API reference
 
 **Technical Documentation:**
-- [README.md](README.md) - Project overview and setup
+- [README.md](../README.md) - Project overview and setup
 - [ImplementationPlan.md](ImplementationPlan.md) - Complete architecture
-- [CLAUDE.md](CLAUDE.md) - Development guide
+- [CLAUDE.md](../CLAUDE.md) - Development guide
 
 **For Emergencies:**
 - Check server logs: `journalctl -u gassigeher -f`
