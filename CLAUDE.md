@@ -96,7 +96,8 @@ go tool cover -html=coverage.out
 - Business logic (auth, email)
 - Independent of HTTP layer
 - **AuthService**: JWT, password hashing, token generation
-- **EmailService**: Gmail API, HTML templates
+- **EmailService**: Multi-provider email (Gmail API, SMTP), HTML templates
+- **EmailProvider Interface**: Pluggable email providers (Gmail, SMTP)
 
 ### Request Flow
 
@@ -141,19 +142,81 @@ Response (JSON)
 
 ## Critical Implementation Details
 
-### Email Service Initialization
+### Email Service Architecture
+
+**Multi-Provider Support:**
+
+The application supports two email providers:
+1. **Gmail API** (OAuth2) - Default, best deliverability
+2. **SMTP** (Username/Password) - Universal, works with any provider
+
+**Provider Interface:**
+```go
+type EmailProvider interface {
+    SendEmail(to, subject, body string) error
+    ValidateConfig() error
+    Close() error
+    GetFromEmail() string
+}
+```
+
+**Supported SMTP Providers:**
+- Strato (smtp.strato.de)
+- Office365 (smtp.office365.com)
+- Gmail SMTP (smtp.gmail.com)
+- Any custom SMTP server
+
+**Initialization Pattern:**
 
 Email service can fail gracefully. Pattern used in handlers:
 
 ```go
-emailService, err := services.NewEmailService(cfg.GmailClientID, cfg.GmailClientSecret, cfg.GmailRefreshToken, cfg.GmailFromEmail)
+emailService, err := services.NewEmailService(services.ConfigToEmailConfig(cfg))
 if err != nil {
     // Log but don't fail - emails will fail gracefully
     fmt.Printf("Warning: Failed to initialize email service: %v\n", err)
 }
 ```
 
-All email sends are in goroutines: `go emailService.SendX(...)`
+All email sends are in goroutines and check for nil: `if emailService != nil { go emailService.SendX(...) }`
+
+**Provider Selection:**
+
+Set via `EMAIL_PROVIDER` environment variable:
+- `gmail` (default) - Uses Gmail API with OAuth2
+- `smtp` - Uses standard SMTP
+
+**BCC Admin Copy:**
+
+Optional `EMAIL_BCC_ADMIN` setting sends a blind copy of all emails to admin for audit trail.
+
+**Configuration Examples:**
+
+Gmail API:
+```bash
+EMAIL_PROVIDER=gmail
+GMAIL_CLIENT_ID=...
+GMAIL_CLIENT_SECRET=...
+GMAIL_REFRESH_TOKEN=...
+GMAIL_FROM_EMAIL=noreply@gassigeher.com
+EMAIL_BCC_ADMIN=admin@gassigeher.com  # Optional
+```
+
+SMTP (Strato):
+```bash
+EMAIL_PROVIDER=smtp
+SMTP_HOST=smtp.strato.de
+SMTP_PORT=465
+SMTP_USERNAME=noreply@yourdomain.com
+SMTP_PASSWORD=your-password
+SMTP_FROM_EMAIL=noreply@yourdomain.com
+SMTP_USE_SSL=true
+EMAIL_BCC_ADMIN=admin@yourdomain.com  # Optional
+```
+
+**See Also:**
+- [Email Provider Selection Guide](docs/Email_Provider_Selection_Guide.md)
+- [SMTP Setup Guides](docs/SMTP_Setup_Guides.md)
 
 ### User Activity Tracking
 
