@@ -155,6 +155,15 @@ GMAIL_FROM_EMAIL=noreply@gassigeher.com
 - **Gmail SMTP**: smtp.gmail.com (port 587 TLS)
 - **Custom**: Any SMTP server
 
+**FR6: Admin Email Copy (BCC)**
+- All sent emails automatically BCC'd to admin mailbox for record-keeping
+- Configure via `EMAIL_BCC_ADMIN` environment variable
+- Optional feature (empty = disabled)
+- Transparent to recipients (blind carbon copy)
+- Works with all providers (Gmail API, SMTP)
+- Enables email audit trail and compliance
+- Admin can review all system communications
+
 ### 2.2 Non-Functional Requirements
 
 **NFR1: Security**
@@ -266,6 +275,7 @@ package services
 // EmailProvider defines the interface for email sending
 type EmailProvider interface {
     // SendEmail sends an email with HTML body
+    // Automatically includes BCC if configured
     SendEmail(to, subject, body string) error
 
     // ValidateConfig validates the provider configuration
@@ -289,13 +299,16 @@ type EmailConfig struct {
     GmailFromEmail    string
 
     // SMTP settings
-    SMTPHost     string
-    SMTPPort     int
-    SMTPUsername string
-    SMTPPassword string
+    SMTPHost      string
+    SMTPPort      int
+    SMTPUsername  string
+    SMTPPassword  string
     SMTPFromEmail string
-    SMTPUseTLS   bool  // Use STARTTLS (port 587)
-    SMTPUseSSL   bool  // Use SSL/TLS (port 465)
+    SMTPUseTLS    bool  // Use STARTTLS (port 587)
+    SMTPUseSSL    bool  // Use SSL/TLS (port 465)
+
+    // BCC settings (applies to all providers)
+    BCCAdmin string  // Optional: BCC all emails to this address for audit trail
 }
 ```
 
@@ -311,15 +324,19 @@ type EmailConfig struct {
 type GmailProvider struct {
     service   *gmail.Service
     fromEmail string
+    bccAdmin  string  // BCC address for admin copy
 }
 
 func NewGmailProvider(config *EmailConfig) (EmailProvider, error) {
     // Current Gmail implementation moved here
+    // Store bccAdmin from config
     // Returns GmailProvider that implements EmailProvider interface
 }
 
 func (p *GmailProvider) SendEmail(to, subject, body string) error {
     // Current SendEmail logic
+    // Add BCC header if bccAdmin is set
+    // Format: "To: {to}\r\nBcc: {bccAdmin}\r\n..."
 }
 ```
 
@@ -331,6 +348,7 @@ type SMTPProvider struct {
     username  string
     password  string
     fromEmail string
+    bccAdmin  string  // BCC address for admin copy
     useTLS    bool
     useSSL    bool
     auth      smtp.Auth
@@ -339,11 +357,14 @@ type SMTPProvider struct {
 func NewSMTPProvider(config *EmailConfig) (EmailProvider, error) {
     // Create SMTP provider
     // Setup authentication
+    // Store bccAdmin from config
     // Return SMTPProvider that implements EmailProvider interface
 }
 
 func (p *SMTPProvider) SendEmail(to, subject, body string) error {
     // Standard SMTP sending with net/smtp
+    // Include BCC in recipients list if bccAdmin is set
+    // Add BCC header to message
     // Support TLS and SSL
     // Handle authentication
 }
@@ -400,16 +421,20 @@ func (s *EmailService) SendEmail(to, subject, body string) error {
 3. **Refactor Gmail to Provider** (`internal/services/email_provider_gmail.go`)
    - Move current Gmail logic to GmailProvider
    - Implement EmailProvider interface
+   - Add BCC support to SendEmail method
    - Keep all functionality identical
 
 4. **Update EmailService** (modify `internal/services/email_service.go`)
    - Change from `*gmail.Service` to `EmailProvider` interface
    - Update NewEmailService to use factory
    - All 17 email methods remain unchanged
+   - BCC automatically applied to all email types
 
 **Acceptance Criteria:**
-- ✅ EmailProvider interface defined
+- ✅ EmailProvider interface defined with BCC support
 - ✅ GmailProvider implements interface
+- ✅ BCC functionality works (when EMAIL_BCC_ADMIN set)
+- ✅ BCC disabled when EMAIL_BCC_ADMIN empty
 - ✅ All existing tests pass
 - ✅ No breaking changes
 - ✅ Gmail still works identically
@@ -440,14 +465,19 @@ func (s *EmailService) SendEmail(to, subject, body string) error {
    - Proper MIME headers
    - HTML email support
    - UTF-8 encoding
-   - From/To/Subject headers
+   - From/To/Subject/BCC headers
 
-3. **Connection Management**
+3. **BCC Implementation**
+   - Add BCC header if BCCAdmin is set in config
+   - Include BCC address in recipient list (SMTP RCPT TO)
+   - Ensure BCC is invisible to primary recipient
+
+4. **Connection Management**
    - Connection pooling (optional)
    - Timeout handling
    - Retry logic
 
-4. **Error Handling**
+5. **Error Handling**
    - Specific SMTP errors
    - Connection failures
    - Authentication failures
@@ -459,6 +489,8 @@ func (s *EmailService) SendEmail(to, subject, body string) error {
 - ✅ Handles authentication
 - ✅ HTML emails formatted correctly
 - ✅ German umlauts work (UTF-8)
+- ✅ BCC works correctly (admin receives copy)
+- ✅ BCC disabled when not configured
 
 **Dependencies:**
 ```go
@@ -660,6 +692,13 @@ SMTP_USE_TLS=true
 EMAIL_PROVIDER=gmail  # or "smtp"
 
 # ==================================================
+# BCC Admin Copy (optional - works with all providers)
+# ==================================================
+# All sent emails will be BCC'd to this address for audit trail
+# Leave empty to disable
+EMAIL_BCC_ADMIN=admin@yourdomain.com
+
+# ==================================================
 # Gmail API Configuration (existing - unchanged)
 # ==================================================
 GMAIL_CLIENT_ID=your-client-id.apps.googleusercontent.com
@@ -709,6 +748,9 @@ GMAIL_CLIENT_ID=123456-abc.apps.googleusercontent.com
 GMAIL_CLIENT_SECRET=GOCSPX-abc123
 GMAIL_REFRESH_TOKEN=1//abc123...
 GMAIL_FROM_EMAIL=noreply@gassigeher.com
+
+# Optional: BCC all emails to admin for audit trail
+EMAIL_BCC_ADMIN=admin@yourdomain.com
 ```
 
 **Option B: Strato SMTP**
@@ -722,6 +764,9 @@ SMTP_PASSWORD=yourpassword
 SMTP_FROM_EMAIL=noreply@yourdomain.com
 SMTP_USE_SSL=true
 SMTP_USE_TLS=false
+
+# Optional: BCC all emails to admin for audit trail
+EMAIL_BCC_ADMIN=admin@yourdomain.com
 ```
 
 **Option C: Office365 SMTP**
@@ -735,9 +780,64 @@ SMTP_PASSWORD=yourpassword
 SMTP_FROM_EMAIL=noreply@yourdomain.com
 SMTP_USE_TLS=true
 SMTP_USE_SSL=false
+
+# Optional: BCC all emails to admin for audit trail
+EMAIL_BCC_ADMIN=admin@yourdomain.com
 ```
 
-### 6.3 Port Selection
+### 6.3 BCC Admin Copy Feature
+
+**Purpose**: Keep a copy of all sent emails in an admin mailbox for:
+- **Audit trail**: Track all system communications
+- **Compliance**: GDPR/legal requirements for data processing
+- **Support**: Help users by reviewing sent emails
+- **Debugging**: Verify email content and delivery
+- **Record-keeping**: Archive of all notifications
+
+**How it works:**
+```
+User Registration
+      ↓
+SendVerificationEmail(user@example.com, ...)
+      ↓
+Email sent to:
+- TO: user@example.com (recipient sees this)
+- BCC: admin@yourdomain.com (recipient CANNOT see this)
+      ↓
+Admin mailbox receives copy for records
+```
+
+**Configuration:**
+```bash
+# Enable BCC to admin
+EMAIL_BCC_ADMIN=admin@yourdomain.com
+
+# Disable BCC (leave empty)
+EMAIL_BCC_ADMIN=
+```
+
+**Technical Implementation:**
+- BCC header added automatically by EmailProvider
+- Recipient cannot see BCC address (blind copy)
+- Works identically with Gmail API and SMTP
+- No changes to existing email methods needed
+- All 17 email types automatically BCC'd
+
+**Use Cases:**
+1. **Compliance Officer** receives all account deletion confirmations
+2. **Support Team** can review booking confirmations sent to users
+3. **Administrator** monitors password reset requests
+4. **Legal Requirements** maintain communication records
+
+**Storage Recommendations:**
+- Use dedicated mailbox (e.g., archive@yourdomain.com)
+- Set up email retention rules (auto-delete after X months)
+- Consider mailbox size limits (may grow large)
+- Use email filtering to organize by type
+
+**Privacy Note:** Inform users in privacy policy that copies of system emails may be retained for administrative purposes.
+
+### 6.4 Port Selection
 
 | Port | Protocol | Security | Use Case |
 |------|----------|----------|----------|
@@ -782,6 +882,8 @@ SMTP_USE_TLS=false
 | **Send booking confirmation** | ✅ | ✅ | ✅ | ✅ |
 | **Send with German umlauts** | ✅ | ✅ | ✅ | ✅ |
 | **HTML email rendering** | ✅ | ✅ | ✅ | ✅ |
+| **BCC admin copy (when enabled)** | ✅ | ✅ | ✅ | ✅ |
+| **BCC disabled (when empty)** | ✅ | ✅ | ✅ | ✅ |
 | **All 17 email types** | ✅ | ✅ | ✅ | ✅ |
 | **Error handling** | ✅ | ✅ | ✅ | ✅ |
 | **Connection retry** | ✅ | ✅ | ✅ | ✅ |
