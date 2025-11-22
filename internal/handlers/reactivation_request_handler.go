@@ -25,12 +25,7 @@ type ReactivationRequestHandler struct {
 
 // NewReactivationRequestHandler creates a new reactivation request handler
 func NewReactivationRequestHandler(db *sql.DB, cfg *config.Config) *ReactivationRequestHandler {
-	emailService, err := services.NewEmailService(
-		cfg.GmailClientID,
-		cfg.GmailClientSecret,
-		cfg.GmailRefreshToken,
-		cfg.GmailFromEmail,
-	)
+	emailService, err := services.NewEmailService(services.ConfigToEmailConfig(cfg))
 	if err != nil {
 		println("Warning: Failed to initialize email service:", err.Error())
 	}
@@ -182,7 +177,7 @@ func (h *ReactivationRequestHandler) ApproveRequest(w http.ResponseWriter, r *ht
 	}
 
 	// Send email notification
-	if user.Email != nil {
+	if user.Email != nil && h.emailService != nil {
 		go h.emailService.SendAccountReactivated(*user.Email, user.Name, req.Message)
 	}
 
@@ -244,7 +239,7 @@ func (h *ReactivationRequestHandler) DenyRequest(w http.ResponseWriter, r *http.
 	}
 
 	// Send email notification
-	if user.Email != nil {
+	if user.Email != nil && h.emailService != nil {
 		go h.emailService.SendReactivationDenied(*user.Email, user.Name, req.Message)
 	}
 

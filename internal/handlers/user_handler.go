@@ -29,12 +29,7 @@ type UserHandler struct {
 
 // NewUserHandler creates a new user handler
 func NewUserHandler(db *sql.DB, cfg *config.Config) *UserHandler {
-	emailService, err := services.NewEmailService(
-		cfg.GmailClientID,
-		cfg.GmailClientSecret,
-		cfg.GmailRefreshToken,
-		cfg.GmailFromEmail,
-	)
+	emailService, err := services.NewEmailService(services.ConfigToEmailConfig(cfg))
 	if err != nil {
 		println("Warning: Failed to initialize email service:", err.Error())
 	}
@@ -171,7 +166,7 @@ func (h *UserHandler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send verification email if email changed
-	if emailChanged && user.Email != nil {
+	if emailChanged && user.Email != nil && h.emailService != nil {
 		go h.emailService.SendVerificationEmail(*user.Email, user.Name, *user.VerificationToken)
 	}
 
@@ -324,7 +319,7 @@ func (h *UserHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send confirmation email to original email
-	if emailForConfirmation != "" {
+	if emailForConfirmation != "" && h.emailService != nil {
 		go h.emailService.SendAccountDeletionConfirmation(emailForConfirmation, user.Name)
 	}
 
@@ -426,7 +421,7 @@ func (h *UserHandler) DeactivateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send email notification
-	if user.Email != nil {
+	if user.Email != nil && h.emailService != nil {
 		go h.emailService.SendAccountDeactivated(*user.Email, user.Name, req.Reason)
 	}
 
@@ -467,7 +462,7 @@ func (h *UserHandler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send email notification
-	if user.Email != nil {
+	if user.Email != nil && h.emailService != nil {
 		go h.emailService.SendAccountReactivated(*user.Email, user.Name, req.Message)
 	}
 

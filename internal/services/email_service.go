@@ -2,69 +2,64 @@ package services
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"html/template"
 	"log"
-
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/gmail/v1"
-	"google.golang.org/api/option"
 )
 
-// EmailService handles sending emails via Gmail API
+// EmailService handles sending emails via any email provider
 type EmailService struct {
-	service   *gmail.Service
-	fromEmail string
+	provider EmailProvider
 }
 
-// NewEmailService creates a new email service
-func NewEmailService(clientID, clientSecret, refreshToken, fromEmail string) (*EmailService, error) {
-	config := &oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		Endpoint:     google.Endpoint,
-		Scopes:       []string{gmail.GmailSendScope},
+// NewEmailService creates a new email service with the specified provider
+func NewEmailService(config *EmailConfig) (*EmailService, error) {
+	if config == nil {
+		return nil, fmt.Errorf("email config cannot be nil")
 	}
 
-	token := &oauth2.Token{
-		RefreshToken: refreshToken,
-		TokenType:    "Bearer",
+	// Validate configuration
+	if err := ValidateEmailConfig(config); err != nil {
+		return nil, fmt.Errorf("invalid email configuration: %w", err)
 	}
 
-	client := config.Client(oauth2.NoContext, token)
-
-	service, err := gmail.NewService(oauth2.NoContext, option.WithHTTPClient(client))
+	// Create provider using factory
+	provider, err := NewEmailProvider(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Gmail service: %w", err)
+		return nil, fmt.Errorf("failed to create email provider: %w", err)
+	}
+
+	// Validate provider
+	if err := provider.ValidateConfig(); err != nil {
+		return nil, fmt.Errorf("provider validation failed: %w", err)
+	}
+
+	log.Printf("Email service initialized with provider: %s (from: %s)", config.Provider, provider.GetFromEmail())
+	if config.BCCAdmin != "" {
+		log.Printf("BCC admin copy enabled: %s", config.BCCAdmin)
 	}
 
 	return &EmailService{
-		service:   service,
-		fromEmail: fromEmail,
+		provider: provider,
 	}, nil
 }
 
-// SendEmail sends an email
-func (s *EmailService) SendEmail(to, subject, body string) error {
-	var message gmail.Message
-
-	emailContent := fmt.Sprintf("From: %s\r\n"+
-		"To: %s\r\n"+
-		"Subject: %s\r\n"+
-		"Content-Type: text/html; charset=UTF-8\r\n\r\n"+
-		"%s", s.fromEmail, to, subject, body)
-
-	message.Raw = base64.URLEncoding.EncodeToString([]byte(emailContent))
-
-	_, err := s.service.Users.Messages.Send("me", &message).Do()
-	if err != nil {
-		return fmt.Errorf("failed to send email: %w", err)
+// NewEmailServiceLegacy creates email service using legacy Gmail API parameters (backward compatibility)
+// DEPRECATED: Use NewEmailService(config) instead
+func NewEmailServiceLegacy(clientID, clientSecret, refreshToken, fromEmail string) (*EmailService, error) {
+	config := &EmailConfig{
+		Provider:          "gmail",
+		GmailClientID:     clientID,
+		GmailClientSecret: clientSecret,
+		GmailRefreshToken: refreshToken,
+		GmailFromEmail:    fromEmail,
 	}
+	return NewEmailService(config)
+}
 
-	log.Printf("Email sent to %s: %s", to, subject)
-	return nil
+// SendEmail sends an email using the configured provider
+func (s *EmailService) SendEmail(to, subject, body string) error {
+	return s.provider.SendEmail(to, subject, body)
 }
 
 // SendVerificationEmail sends an email verification link

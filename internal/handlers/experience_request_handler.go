@@ -25,12 +25,7 @@ type ExperienceRequestHandler struct {
 
 // NewExperienceRequestHandler creates a new experience request handler
 func NewExperienceRequestHandler(db *sql.DB, cfg *config.Config) *ExperienceRequestHandler {
-	emailService, err := services.NewEmailService(
-		cfg.GmailClientID,
-		cfg.GmailClientSecret,
-		cfg.GmailRefreshToken,
-		cfg.GmailFromEmail,
-	)
+	emailService, err := services.NewEmailService(services.ConfigToEmailConfig(cfg))
 	if err != nil {
 		// Log error but don't fail
 		println("Warning: Failed to initialize email service:", err.Error())
@@ -219,7 +214,7 @@ func (h *ExperienceRequestHandler) ApproveRequest(w http.ResponseWriter, r *http
 	}
 
 	// Send email notification
-	if user.Email != nil {
+	if user.Email != nil && h.emailService != nil {
 		go h.emailService.SendExperienceLevelApproved(*user.Email, user.Name, experienceRequest.RequestedLevel, req.Message)
 	}
 
@@ -281,7 +276,7 @@ func (h *ExperienceRequestHandler) DenyRequest(w http.ResponseWriter, r *http.Re
 	}
 
 	// Send email notification
-	if user.Email != nil {
+	if user.Email != nil && h.emailService != nil {
 		go h.emailService.SendExperienceLevelDenied(*user.Email, user.Name, experienceRequest.RequestedLevel, req.Message)
 	}
 

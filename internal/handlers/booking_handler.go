@@ -31,12 +31,7 @@ type BookingHandler struct {
 
 // NewBookingHandler creates a new booking handler
 func NewBookingHandler(db *sql.DB, cfg *config.Config) *BookingHandler {
-	emailService, err := services.NewEmailService(
-		cfg.GmailClientID,
-		cfg.GmailClientSecret,
-		cfg.GmailRefreshToken,
-		cfg.GmailFromEmail,
-	)
+	emailService, err := services.NewEmailService(services.ConfigToEmailConfig(cfg))
 	if err != nil {
 		// Log error but don't fail - emails will fail gracefully
 		fmt.Printf("Warning: Failed to initialize email service: %v\n", err)
@@ -195,7 +190,7 @@ func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 	h.userRepo.UpdateLastActivity(userID)
 
 	// Send confirmation email
-	if user.Email != nil {
+	if user.Email != nil && h.emailService != nil {
 		go h.emailService.SendBookingConfirmation(*user.Email, user.Name, dog.Name, booking.Date, booking.WalkType, booking.ScheduledTime)
 	}
 
@@ -395,7 +390,7 @@ func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
 	h.userRepo.UpdateLastActivity(userID)
 
 	// Send cancellation email
-	if booking.User.Email != nil {
+	if booking.User.Email != nil && h.emailService != nil {
 		if isAdmin && req.Reason != nil {
 			// Admin cancelled
 			go h.emailService.SendAdminCancellation(*booking.User.Email, booking.User.Name, booking.Dog.Name, booking.Date, booking.WalkType, *req.Reason)
@@ -549,7 +544,7 @@ func (h *BookingHandler) MoveBooking(w http.ResponseWriter, r *http.Request) {
 	h.userRepo.UpdateLastActivity(userID)
 
 	// Send email notification to user
-	if booking.User.Email != nil {
+	if booking.User.Email != nil && h.emailService != nil {
 		go h.emailService.SendBookingMoved(
 			*booking.User.Email,
 			booking.User.Name,

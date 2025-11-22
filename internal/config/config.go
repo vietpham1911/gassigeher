@@ -39,15 +39,30 @@ type Config struct {
 	// Admin
 	AdminEmails []string
 
+	// Email Provider Selection
+	EmailProvider string // "gmail" or "smtp"
+
 	// Gmail API
 	GmailClientID     string
 	GmailClientSecret string
 	GmailRefreshToken string
 	GmailFromEmail    string
 
+	// SMTP Configuration
+	SMTPHost      string
+	SMTPPort      int
+	SMTPUsername  string
+	SMTPPassword  string
+	SMTPFromEmail string
+	SMTPUseTLS    bool
+	SMTPUseSSL    bool
+
+	// BCC Admin Copy (works with all providers)
+	EmailBCCAdmin string
+
 	// Uploads
-	UploadDir        string
-	MaxUploadSizeMB  int
+	UploadDir       string
+	MaxUploadSizeMB int
 
 	// System Settings
 	BookingAdvanceDays      int
@@ -89,11 +104,26 @@ func Load() *Config {
 		// Admin
 		AdminEmails: getEnvAsSlice("ADMIN_EMAILS", ","),
 
+		// Email Provider (default: gmail for backward compatibility)
+		EmailProvider: getEnv("EMAIL_PROVIDER", "gmail"),
+
 		// Gmail API
 		GmailClientID:     getEnv("GMAIL_CLIENT_ID", ""),
 		GmailClientSecret: getEnv("GMAIL_CLIENT_SECRET", ""),
 		GmailRefreshToken: getEnv("GMAIL_REFRESH_TOKEN", ""),
 		GmailFromEmail:    getEnv("GMAIL_FROM_EMAIL", "noreply@gassigeher.com"),
+
+		// SMTP Configuration
+		SMTPHost:      getEnv("SMTP_HOST", ""),
+		SMTPPort:      getEnvAsInt("SMTP_PORT", 0),
+		SMTPUsername:  getEnv("SMTP_USERNAME", ""),
+		SMTPPassword:  getEnv("SMTP_PASSWORD", ""),
+		SMTPFromEmail: getEnv("SMTP_FROM_EMAIL", ""),
+		SMTPUseTLS:    getEnvAsBool("SMTP_USE_TLS", false),
+		SMTPUseSSL:    getEnvAsBool("SMTP_USE_SSL", false),
+
+		// BCC Admin Copy
+		EmailBCCAdmin: getEnv("EMAIL_BCC_ADMIN", ""),
 
 		// Uploads
 		UploadDir:       getEnv("UPLOAD_DIR", "./uploads"),
@@ -163,4 +193,12 @@ func getEnvAsSlice(key, sep string) []string {
 		return []string{}
 	}
 	return strings.Split(valueStr, sep)
+}
+
+func getEnvAsBool(key string, defaultValue bool) bool {
+	valueStr := strings.ToLower(os.Getenv(key))
+	if valueStr == "" {
+		return defaultValue
+	}
+	return valueStr == "true" || valueStr == "1" || valueStr == "yes"
 }

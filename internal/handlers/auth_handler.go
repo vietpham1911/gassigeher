@@ -25,12 +25,7 @@ type AuthHandler struct {
 
 // NewAuthHandler creates a new auth handler
 func NewAuthHandler(db *sql.DB, cfg *config.Config) *AuthHandler {
-	emailService, err := services.NewEmailService(
-		cfg.GmailClientID,
-		cfg.GmailClientSecret,
-		cfg.GmailRefreshToken,
-		cfg.GmailFromEmail,
-	)
+	emailService, err := services.NewEmailService(services.ConfigToEmailConfig(cfg))
 	if err != nil {
 		// Log error but don't fail - emails will fail gracefully
 		fmt.Printf("Warning: Failed to initialize email service: %v\n", err)
@@ -220,7 +215,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Check if verified
 	if !user.IsVerified {
 		// Send verification reminder email in background (don't block response)
-		if user.Email != nil && user.VerificationToken != nil {
+		if user.Email != nil && user.VerificationToken != nil && h.emailService != nil {
 			go h.emailService.SendVerificationEmail(*user.Email, user.Name, *user.VerificationToken)
 		}
 		respondError(w, http.StatusUnauthorized, "Ungültige Anmeldedaten")
