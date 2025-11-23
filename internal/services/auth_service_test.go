@@ -65,7 +65,7 @@ func TestAuthService_GenerateToken(t *testing.T) {
 func TestAuthService_GenerateJWT(t *testing.T) {
 	service := NewAuthService("test-secret", 24)
 
-	tokenString, err := service.GenerateJWT(1, "test@example.com", false)
+	tokenString, err := service.GenerateJWT(1, "test@example.com", false, false)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
@@ -110,7 +110,7 @@ func TestAuthService_ValidateJWT(t *testing.T) {
 	service := NewAuthService("test-secret", 24)
 
 	// Generate valid token
-	tokenString, _ := service.GenerateJWT(1, "test@example.com", true)
+	tokenString, _ := service.GenerateJWT(1, "test@example.com", true, false)
 
 	// Validate token
 	claims, err := service.ValidateJWT(tokenString)
@@ -168,7 +168,7 @@ func TestAuthService_JWTExpiration(t *testing.T) {
 	}
 
 	// Generate token that expires immediately
-	tokenString, _ := service.GenerateJWT(1, "test@example.com", false)
+	tokenString, _ := service.GenerateJWT(1, "test@example.com", false, false)
 
 	// Wait a moment
 	time.Sleep(1 * time.Second)
@@ -217,7 +217,7 @@ func TestAuthService_GenerateJWT_AdminClaims(t *testing.T) {
 	service := NewAuthService("test-secret", 24)
 
 	t.Run("admin user", func(t *testing.T) {
-		tokenString, err := service.GenerateJWT(1, "admin@example.com", true)
+		tokenString, err := service.GenerateJWT(1, "admin@example.com", true, false)
 		if err != nil {
 			t.Fatalf("GenerateJWT() failed: %v", err)
 		}
@@ -233,7 +233,7 @@ func TestAuthService_GenerateJWT_AdminClaims(t *testing.T) {
 	})
 
 	t.Run("non-admin user", func(t *testing.T) {
-		tokenString, err := service.GenerateJWT(2, "user@example.com", false)
+		tokenString, err := service.GenerateJWT(2, "user@example.com", false, false)
 		if err != nil {
 			t.Fatalf("GenerateJWT() failed: %v", err)
 		}
@@ -282,7 +282,7 @@ func TestAuthService_ValidateJWT_WrongSecret(t *testing.T) {
 	service2 := NewAuthService("secret-2", 24)
 
 	// Generate token with service1
-	tokenString, _ := service1.GenerateJWT(1, "test@example.com", false)
+	tokenString, _ := service1.GenerateJWT(1, "test@example.com", false, false)
 
 	// Try to validate with service2 (different secret)
 	claims, err := service2.ValidateJWT(tokenString)

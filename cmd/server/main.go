@@ -12,6 +12,7 @@ import (
 	"github.com/tranm/gassigeher/internal/database"
 	"github.com/tranm/gassigeher/internal/handlers"
 	"github.com/tranm/gassigeher/internal/middleware"
+	"github.com/tranm/gassigeher/internal/services"
 )
 
 func main() {
@@ -37,6 +38,18 @@ func main() {
 	// Run migrations with dialect support
 	if err := database.RunMigrationsWithDialect(db, dialect); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
+	// DONE: Phase 2 - Run seed data (first-time installations)
+	if err := database.SeedDatabase(db, cfg.SuperAdminEmail); err != nil {
+		log.Fatalf("Failed to seed database: %v", err)
+	}
+
+	// DONE: Phase 2 - Check and update Super Admin password
+	superAdminService := services.NewSuperAdminService(db, cfg)
+	if err := superAdminService.CheckAndUpdatePassword(); err != nil {
+		log.Printf("Warning: Failed to check Super Admin password: %v", err)
+		// Don't exit - allow server to start
 	}
 
 	// Initialize router
@@ -150,6 +163,12 @@ func main() {
 	// Admin dashboard (admin only)
 	admin.HandleFunc("/admin/stats", dashboardHandler.GetStats).Methods("GET")
 	admin.HandleFunc("/admin/activity", dashboardHandler.GetRecentActivity).Methods("GET")
+
+	// DONE: Phase 4 - Super Admin routes (authenticated + admin + super admin)
+	superAdmin := admin.PathPrefix("").Subrouter()
+	superAdmin.Use(middleware.RequireSuperAdmin)
+	superAdmin.HandleFunc("/admin/users/{id}/promote", userHandler.PromoteToAdmin).Methods("POST")
+	superAdmin.HandleFunc("/admin/users/{id}/demote", userHandler.DemoteAdmin).Methods("POST")
 
 	// Uploads directory (user photos, dog photos)
 	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))

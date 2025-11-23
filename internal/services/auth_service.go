@@ -49,12 +49,14 @@ func (s *AuthService) GenerateToken() (string, error) {
 }
 
 // GenerateJWT generates a JWT token for a user
-func (s *AuthService) GenerateJWT(userID int, email string, isAdmin bool) (string, error) {
+// DONE: Phase 3 - Updated to include is_super_admin claim
+func (s *AuthService) GenerateJWT(userID int, email string, isAdmin bool, isSuperAdmin bool) (string, error) {
 	claims := jwt.MapClaims{
-		"user_id":  userID,
-		"email":    email,
-		"is_admin": isAdmin,
-		"exp":      time.Now().Add(time.Hour * time.Duration(s.jwtExpirationHours)).Unix(),
+		"user_id":        userID,
+		"email":          email,
+		"is_admin":       isAdmin,
+		"is_super_admin": isSuperAdmin,
+		"exp":            time.Now().Add(time.Hour * time.Duration(s.jwtExpirationHours)).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -65,6 +67,8 @@ func (s *AuthService) GenerateJWT(userID int, email string, isAdmin bool) (strin
 
 	return tokenString, nil
 }
+
+// DONE: Phase 3 - JWT now includes is_admin and is_super_admin claims
 
 // ValidateJWT validates and parses a JWT token
 func (s *AuthService) ValidateJWT(tokenString string) (*jwt.MapClaims, error) {

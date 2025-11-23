@@ -270,7 +270,19 @@
     "last_activity": "Letzte Aktivität",
     "member_since": "Mitglied seit",
     "status_active": "Aktiv",
-    "status_inactive": "Inaktiv"
+    "status_inactive": "Inaktiv",
+    "role": "Rolle",
+    "super_admin": "Super Admin",
+    "admin": "Admin",
+    "user": "Benutzer",
+    "promote_to_admin": "Zu Admin ernennen",
+    "demote_admin": "Admin entfernen",
+    "promote_confirm": "Möchten Sie diesen Benutzer wirklich zum Admin ernennen?\n\nAdmins haben Zugriff auf alle Verwaltungsfunktionen.",
+    "demote_confirm": "Möchten Sie diesem Benutzer wirklich die Admin-Rechte entziehen?\n\nDer Benutzer wird zu einem normalen Benutzer herabgestuft.",
+    "promote_success": "Benutzer wurde erfolgreich zum Admin ernannt.",
+    "demote_success": "Admin-Rechte wurden erfolgreich entzogen.",
+    "promote_error": "Fehler beim Ernennen des Benutzers zum Admin.",
+    "demote_error": "Fehler beim Entziehen der Admin-Rechte."
   },
   "reactivation": {
     "title": "Reaktivierung beantragen",

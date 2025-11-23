@@ -15,6 +15,7 @@ type contextKey string
 const UserIDKey contextKey = "userID"
 const EmailKey contextKey = "email"
 const IsAdminKey contextKey = "isAdmin"
+const IsSuperAdminKey contextKey = "isSuperAdmin" // DONE: Phase 3
 
 // LoggingMiddleware logs HTTP requests
 // BUG FIX #13: Sanitize sensitive data from logs
@@ -132,10 +133,17 @@ func AuthMiddleware(jwtSecret string) func(http.Handler) http.Handler {
 				isAdmin = false
 			}
 
+			// DONE: Phase 3 - Extract is_super_admin claim
+			isSuperAdmin, ok := (*claims)["is_super_admin"].(bool)
+			if !ok {
+				isSuperAdmin = false
+			}
+
 			// Add to context
 			ctx := context.WithValue(r.Context(), UserIDKey, int(userID))
 			ctx = context.WithValue(ctx, EmailKey, email)
 			ctx = context.WithValue(ctx, IsAdminKey, isAdmin)
+			ctx = context.WithValue(ctx, IsSuperAdminKey, isSuperAdmin) // DONE: Phase 3
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -153,6 +161,21 @@ func RequireAdmin(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// RequireSuperAdmin middleware checks if user is a super admin
+// DONE: Phase 3 - New middleware for Super Admin only operations
+func RequireSuperAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		isSuperAdmin, ok := r.Context().Value(IsSuperAdminKey).(bool)
+		if !ok || !isSuperAdmin {
+			http.Error(w, `{"error":"Super Admin access required"}`, http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// DONE: Phase 3 - Middleware updates complete
 
 // SecurityHeadersMiddleware adds security headers
 func SecurityHeadersMiddleware(next http.Handler) http.Handler {

@@ -36,8 +36,8 @@ type Config struct {
 	JWTSecret          string
 	JWTExpirationHours int
 
-	// Admin
-	AdminEmails []string
+	// Super Admin (DONE: replaces ADMIN_EMAILS)
+	SuperAdminEmail string
 
 	// Email Provider Selection
 	EmailProvider string // "gmail" or "smtp"
@@ -102,8 +102,8 @@ func Load() *Config {
 		JWTSecret:          getEnv("JWT_SECRET", "change-this-in-production"),
 		JWTExpirationHours: getEnvAsInt("JWT_EXPIRATION_HOURS", 24),
 
-		// Admin
-		AdminEmails: getEnvAsSlice("ADMIN_EMAILS", ","),
+		// Super Admin (DONE: replaces ADMIN_EMAILS)
+		SuperAdminEmail: getEnv("SUPER_ADMIN_EMAIL", ""),
 
 		// Email Provider (default: gmail for backward compatibility)
 		EmailProvider: getEnv("EMAIL_PROVIDER", "gmail"),
@@ -142,17 +142,6 @@ func Load() *Config {
 	}
 }
 
-// IsAdmin checks if the given email is an admin
-func (c *Config) IsAdmin(email string) bool {
-	email = strings.TrimSpace(strings.ToLower(email))
-	for _, adminEmail := range c.AdminEmails {
-		if strings.TrimSpace(strings.ToLower(adminEmail)) == email {
-			return true
-		}
-	}
-	return false
-}
-
 // GetDBConfig builds a database configuration from the application config
 // This is used to initialize the database connection with the correct parameters
 func (c *Config) GetDBConfig() *database.DBConfig {
@@ -189,14 +178,6 @@ func getEnvAsInt(key string, defaultValue int) int {
 	return defaultValue
 }
 
-func getEnvAsSlice(key, sep string) []string {
-	valueStr := os.Getenv(key)
-	if valueStr == "" {
-		return []string{}
-	}
-	return strings.Split(valueStr, sep)
-}
-
 func getEnvAsBool(key string, defaultValue bool) bool {
 	valueStr := strings.ToLower(os.Getenv(key))
 	if valueStr == "" {
@@ -204,3 +185,5 @@ func getEnvAsBool(key string, defaultValue bool) bool {
 	}
 	return valueStr == "true" || valueStr == "1" || valueStr == "yes"
 }
+
+// DONE

@@ -6,6 +6,9 @@ bin/
 # Database files
 gassigeher.db
 
+# Super Admin credentials (NEVER commit!)
+SUPER_ADMIN_CREDENTIALS.txt
+
 # Test data
 scripts/testdata.sql
 

@@ -149,8 +149,14 @@ cp .env.example .env
 
 Edit `.env` and set your configuration, especially:
 - `JWT_SECRET`: Generate a secure random string
-- `ADMIN_EMAILS`: Your admin email addresses
+- `SUPER_ADMIN_EMAIL`: Your Super Admin email address (for first-time setup)
 - Gmail API credentials (see below)
+
+**Important:** On first run, the system will automatically:
+- Create a Super Admin account with the email from `SUPER_ADMIN_EMAIL`
+- Generate a secure random password
+- Display credentials in console and save to `SUPER_ADMIN_CREDENTIALS.txt`
+- Create sample data (3 users, 5 dogs, 3 bookings)
 
 ### 4. Gmail API Setup
 
@@ -423,9 +429,21 @@ See [ImplementationPlan.md](docs/ImplementationPlan.md) for complete phase detai
 - System fonts only (Arial, sans-serif)
 
 ### Admin Access
-Admins are defined in the `ADMIN_EMAILS` environment variable (comma-separated). Users with these emails get admin privileges automatically upon login.
 
-Example: `ADMIN_EMAILS=admin@example.com,admin2@example.com`
+**Super Admin System:**
+- On first installation, a Super Admin is created automatically using `SUPER_ADMIN_EMAIL` from `.env`
+- Super Admin credentials are saved in `SUPER_ADMIN_CREDENTIALS.txt`
+- Super Admin can promote/demote other users to/from admin role via the web UI
+- Admin privileges are stored in the database (no server restart needed)
+- Change Super Admin password by editing `SUPER_ADMIN_CREDENTIALS.txt` and restarting
+
+**Becoming an Admin:**
+1. Register as a regular user
+2. Ask the Super Admin to promote you via "Benutzerverwaltung" page
+3. Super Admin clicks "Zu Admin ernennen" on your account
+4. You immediately gain admin access
+
+**Note:** The old `ADMIN_EMAILS` environment variable is no longer used.
 
 ### Experience Level System
 - **Green (Beginner)**: Default for all new users, can book green-category dogs
@@ -558,8 +576,18 @@ See **[DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md)** for navigation gui
 **Read**: [USER_GUIDE.md](docs/USER_GUIDE.md) for complete instructions.
 
 ### For Administrators
-1. Ensure your email is in `ADMIN_EMAILS` environment variable
-2. Register and verify like normal user
+
+**First-Time Setup (Super Admin):**
+1. Set `SUPER_ADMIN_EMAIL` in `.env` before first run
+2. Start the application
+3. Note the Super Admin credentials displayed in console
+4. Credentials also saved in `SUPER_ADMIN_CREDENTIALS.txt`
+5. Login with those credentials
+6. You'll be redirected to admin dashboard
+
+**Additional Administrators:**
+1. Register and verify as normal user
+2. Ask Super Admin to promote you via "Benutzerverwaltung"
 3. Login - you'll be redirected to admin dashboard
 4. Start managing dogs, users, and bookings
 

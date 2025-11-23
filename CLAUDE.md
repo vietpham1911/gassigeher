@@ -122,9 +122,11 @@ Response (JSON)
 4. Handlers access via `r.Context().Value(middleware.UserIDKey)`
 
 **Admin Authorization:**
-- Admins defined in `ADMIN_EMAILS` env var (config-based, not DB)
-- `RequireAdmin` middleware checks `is_admin` context value
+- Admins defined in database (`users.is_admin` and `users.is_super_admin` flags)
+- `RequireAdmin` middleware checks `is_admin` context value from JWT
+- `RequireSuperAdmin` middleware checks `is_super_admin` context value from JWT
 - Applied to protected routes via subrouter
+- Super Admin manages admin privileges via UI (admin-users.html)
 
 **GDPR Anonymization:**
 - `UserRepository.DeleteAccount()` sets:
@@ -342,12 +344,14 @@ Defined in `internal/middleware/middleware.go`:
 const UserIDKey contextKey = "userID"
 const EmailKey contextKey = "email"
 const IsAdminKey contextKey = "isAdmin"
+const IsSuperAdminKey contextKey = "isSuperAdmin"
 ```
 
 Access in handlers:
 ```go
 userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 isAdmin, _ := r.Context().Value(middleware.IsAdminKey).(bool)
+isSuperAdmin, _ := r.Context().Value(middleware.IsSuperAdminKey).(bool)
 ```
 
 ### Date/Time Formats
@@ -386,11 +390,58 @@ func NewXHandler(db *sql.DB, cfg *config.Config) *XHandler {
 
 Critical variables in `.env`:
 - `JWT_SECRET` - Must be secure random string (256-bit)
-- `ADMIN_EMAILS` - Comma-separated list (no DB admin table)
+- `SUPER_ADMIN_EMAIL` - Email for Super Admin account (created automatically on first run)
 - `DATABASE_PATH` - SQLite file location
 - Gmail API credentials (4 variables)
 
-**Admin access**: Users with emails in `ADMIN_EMAILS` automatically get `is_admin: true` in JWT claims.
+**Note**: `ADMIN_EMAILS` is no longer used. Admin privileges are now managed via database.
+
+### Super Admin System
+
+**Super Admin vs Regular Admin:**
+
+- **Super Admin** (ID=1): Can promote/demote other admins, cannot be deleted/deactivated
+- **Regular Admin**: All admin functions except user promotion, can be demoted by Super Admin
+- **Admin privileges stored in database** (not config file)
+
+**First-time installation:**
+- Automatic seed data generation
+- Super Admin created automatically
+- Credentials in `SUPER_ADMIN_CREDENTIALS.txt` and console
+- 3 test users created (green, blue, orange levels)
+- 5 test dogs created
+- 3 test bookings created
+
+**Change Super Admin password:**
+1. Edit `SUPER_ADMIN_CREDENTIALS.txt`
+2. Update the `PASSWORD:` line
+3. Save file
+4. Restart server
+5. File updated with confirmation
+
+**Promote user to admin:**
+- Login as Super Admin
+- Go to admin-users.html
+- Click "Zu Admin ernennen" button on user row
+- User immediately gains admin access
+
+**Demote admin:**
+- Login as Super Admin
+- Go to admin-users.html
+- Click "Admin entfernen" button on admin row
+- User immediately loses admin access
+
+**Authentication changes:**
+- JWT includes `is_admin` and `is_super_admin` claims
+- Middleware: `RequireAdmin` and `RequireSuperAdmin`
+- Config-based `ADMIN_EMAILS` removed
+- Admin flags stored in database: `users.is_admin`, `users.is_super_admin`
+
+**Protection:**
+- Super Admin cannot be deleted (ID=1 protected)
+- Admins excluded from auto-deactivation cron
+- Cannot promote/demote Super Admin
+- Only Super Admin can manage admin privileges
 
 ### System Settings (Configurable at Runtime)
 
@@ -852,10 +903,12 @@ Framework supports other languages (add `en.json` for English), but currently Ge
 
 ## Security Notes
 
-**Admin emails are config-based** (not in database) for security:
-- Prevents privilege escalation attacks
-- Requires server restart to add/remove admins
-- Check: `config.IsAdmin(email)`
+**Admin privileges are database-driven** for ease of management:
+- Super Admin (ID=1) manages all admin privileges via UI
+- No server restart needed to add/remove admins
+- Protected from privilege escalation (only Super Admin can promote)
+- Super Admin cannot be deleted or demoted
+- Check: `user.IsAdmin` or `user.IsSuperAdmin` flags
 
 **JWT secret must be strong**:
 - Generate: `openssl rand -base64 32`

@@ -468,3 +468,127 @@ func (h *UserHandler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, map[string]string{"message": "User activated successfully"})
 }
+
+// PromoteToAdmin promotes a user to admin role (Super Admin only)
+// DONE: Phase 4
+func (h *UserHandler) PromoteToAdmin(w http.ResponseWriter, r *http.Request) {
+	// Extract super admin from context (middleware already verified)
+	isSuperAdmin, _ := r.Context().Value(middleware.IsSuperAdminKey).(bool)
+	if !isSuperAdmin {
+		respondError(w, http.StatusForbidden, "Only Super Admin can promote users")
+		return
+	}
+
+	// Get user ID from URL
+	vars := mux.Vars(r)
+	userIDStr := vars["id"]
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	// Get target user
+	targetUser, err := h.userRepo.FindByID(userID)
+	if err != nil {
+		respondError(w, http.StatusNotFound, "User not found")
+		return
+	}
+	if targetUser == nil {
+		respondError(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	// Validation checks
+	if targetUser.IsSuperAdmin {
+		respondError(w, http.StatusBadRequest, "Cannot modify Super Admin")
+		return
+	}
+
+	if targetUser.IsAdmin {
+		respondError(w, http.StatusBadRequest, "User is already an admin")
+		return
+	}
+
+	// Promote user
+	err = h.userRepo.PromoteToAdmin(userID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to promote user")
+		return
+	}
+
+	// Get updated user
+	updatedUser, err := h.userRepo.FindByID(userID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to retrieve updated user")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"message": "User promoted to admin successfully",
+		"user":    updatedUser,
+	})
+}
+
+// DemoteAdmin revokes admin privileges (Super Admin only)
+// DONE: Phase 4
+func (h *UserHandler) DemoteAdmin(w http.ResponseWriter, r *http.Request) {
+	// Extract super admin from context
+	isSuperAdmin, _ := r.Context().Value(middleware.IsSuperAdminKey).(bool)
+	if !isSuperAdmin {
+		respondError(w, http.StatusForbidden, "Only Super Admin can demote admins")
+		return
+	}
+
+	// Get user ID from URL
+	vars := mux.Vars(r)
+	userIDStr := vars["id"]
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	// Get target user
+	targetUser, err := h.userRepo.FindByID(userID)
+	if err != nil {
+		respondError(w, http.StatusNotFound, "User not found")
+		return
+	}
+	if targetUser == nil {
+		respondError(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	// Validation checks
+	if targetUser.IsSuperAdmin {
+		respondError(w, http.StatusBadRequest, "Cannot demote Super Admin")
+		return
+	}
+
+	if !targetUser.IsAdmin {
+		respondError(w, http.StatusBadRequest, "User is not an admin")
+		return
+	}
+
+	// Demote user
+	err = h.userRepo.DemoteAdmin(userID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to demote admin")
+		return
+	}
+
+	// Get updated user
+	updatedUser, err := h.userRepo.FindByID(userID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to retrieve updated user")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Admin privileges revoked successfully",
+		"user":    updatedUser,
+	})
+}
+
+// DONE: Phase 4 - Handler methods complete

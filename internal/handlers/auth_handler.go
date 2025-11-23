@@ -234,11 +234,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Failed to update last activity: %v\n", err)
 	}
 
-	// Check if admin
-	isAdmin := h.config.IsAdmin(req.Email)
+	// DONE: Get admin status from database (not config)
+	isAdmin := user.IsAdmin
+	isSuperAdmin := user.IsSuperAdmin // DONE: Phase 3
 
 	// Generate JWT
-	token, err := h.authService.GenerateJWT(user.ID, req.Email, isAdmin)
+	// DONE: Phase 3 - Include isSuperAdmin in JWT
+	token, err := h.authService.GenerateJWT(user.ID, req.Email, isAdmin, isSuperAdmin)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Failed to generate token")
 		return

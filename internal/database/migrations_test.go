@@ -14,8 +14,8 @@ import (
 func TestMigrationRegistry(t *testing.T) {
 	migrations := GetAllMigrations()
 
-	t.Run("All_9_migrations_registered", func(t *testing.T) {
-		assert.Len(t, migrations, 9, "Should have 9 migrations")
+	t.Run("All_10_migrations_registered", func(t *testing.T) {
+		assert.Len(t, migrations, 10, "Should have 10 migrations")
 	})
 
 	t.Run("Migrations_have_unique_IDs", func(t *testing.T) {
@@ -74,7 +74,7 @@ func TestRunMigrations_SQLite(t *testing.T) {
 	var count int
 	err = db.QueryRow("SELECT COUNT(*) FROM schema_migrations").Scan(&count)
 	assert.NoError(t, err)
-	assert.Equal(t, 9, count, "Should have 9 applied migrations")
+	assert.Equal(t, 10, count, "Should have 10 applied migrations")
 
 	// Verify all tables created
 	tables := []string{
@@ -119,16 +119,16 @@ func TestRunMigrations_Idempotent(t *testing.T) {
 	var count int
 	err = db.QueryRow("SELECT COUNT(*) FROM schema_migrations").Scan(&count)
 	assert.NoError(t, err)
-	assert.Equal(t, 9, count)
+	assert.Equal(t, 10, count)
 
 	// Run migrations second time (should be idempotent)
 	err = RunMigrationsWithDialect(db, dialect)
 	assert.NoError(t, err, "Second migration run should succeed (idempotent)")
 
-	// Count should still be 9 (no duplicates)
+	// Count should still be 10 (no duplicates)
 	err = db.QueryRow("SELECT COUNT(*) FROM schema_migrations").Scan(&count)
 	assert.NoError(t, err)
-	assert.Equal(t, 9, count, "Should still have 9 migrations (no duplicates)")
+	assert.Equal(t, 10, count, "Should still have 10 migrations (no duplicates)")
 }
 
 // TestGetMigrationStatus tests migration status reporting
@@ -146,7 +146,7 @@ func TestGetMigrationStatus(t *testing.T) {
 	applied, pending, err := GetMigrationStatus(db, dialect)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, applied)
-	assert.Equal(t, 9, pending)
+	assert.Equal(t, 10, pending)
 
 	// After migrations
 	err = RunMigrationsWithDialect(db, dialect)
@@ -154,7 +154,7 @@ func TestGetMigrationStatus(t *testing.T) {
 
 	applied, pending, err = GetMigrationStatus(db, dialect)
 	assert.NoError(t, err)
-	assert.Equal(t, 9, applied)
+	assert.Equal(t, 10, applied)
 	assert.Equal(t, 0, pending)
 }
 
@@ -359,6 +359,7 @@ func TestMigrationOrder(t *testing.T) {
 		"007_create_reactivation_requests_table",
 		"008_insert_default_settings",
 		"009_add_photo_thumbnail_column",
+		"010_add_admin_flags",
 	}
 
 	assert.Len(t, migrations, len(expectedOrder))

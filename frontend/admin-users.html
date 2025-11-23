@@ -63,6 +63,7 @@
     <script src="/js/api.js"></script>
     <script>
         let users = [];
+        let currentUser = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
             if (!api.isAuthenticated()) {
@@ -72,8 +73,8 @@
 
             // Check if user is admin
             try {
-                const userData = await api.getMe();
-                if (!userData.is_admin) {
+                currentUser = await api.getMe();
+                if (!currentUser.is_admin) {
                     alert('Zugriff verweigert: Diese Seite ist nur für Administratoren zugänglich.');
                     window.location.href = '/dashboard.html';
                     return;
@@ -124,6 +125,16 @@
                 const statusLabel = user.is_active ? 'Aktiv' : 'Inaktiv';
                 const levelLabel = getLevelLabel(user.experience_level);
 
+                // Determine role badge
+                let roleBadge = '';
+                if (user.is_super_admin) {
+                    roleBadge = '<span class="badge-super-admin">Super Admin</span>';
+                } else if (user.is_admin) {
+                    roleBadge = '<span class="badge-admin">Admin</span>';
+                } else {
+                    roleBadge = '<span style="color: #666;">Benutzer</span>';
+                }
+
                 return `
                     <div class="card" style="margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -132,6 +143,7 @@
                                     <h4 style="margin: 0;">${user.name}</h4>
                                     <span class="alert ${statusClass}" style="padding: 4px 12px; font-size: 0.8rem; margin: 0;">${statusLabel}</span>
                                     <span class="dog-category-badge ${user.experience_level}" style="font-size: 0.8rem;">${levelLabel}</span>
+                                    ${roleBadge}
                                 </div>
                                 <p style="margin: 5px 0; color: #666;">
                                     <strong>E-Mail:</strong> ${user.email || 'N/A'}
@@ -151,12 +163,22 @@
                                     </p>
                                 ` : ''}
                             </div>
-                            <div style="display: flex; gap: 5px; flex-direction: column; min-width: 120px;">
-                                ${user.is_active ? `
+                            <div style="display: flex; gap: 5px; flex-direction: column; min-width: 150px;">
+                                ${!user.is_admin && !user.is_super_admin && user.is_active ? `
                                     <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deactivateUser(${user.id})">Deaktivieren</button>
-                                ` : `
+                                ` : user.is_active && !user.is_super_admin ? `
                                     <button class="btn" style="padding: 8px 16px; background-color: #28a745;" onclick="activateUser(${user.id})">Aktivieren</button>
-                                `}
+                                ` : !user.is_active ? `
+                                    <button class="btn" style="padding: 8px 16px; background-color: #28a745;" onclick="activateUser(${user.id})">Aktivieren</button>
+                                ` : ''}
+
+                                ${currentUser && currentUser.is_super_admin && !user.is_super_admin ? `
+                                    ${user.is_admin ? `
+                                        <button class="btn-demote" onclick="demoteAdmin(${user.id}, '${user.name.replace(/'/g, "\\'")}')">Admin entfernen</button>
+                                    ` : `
+                                        <button class="btn-promote" onclick="promoteToAdmin(${user.id}, '${user.name.replace(/'/g, "\\'")}')">Zu Admin ernennen</button>
+                                    `}
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -202,11 +224,91 @@
             }
         }
 
+        async function promoteToAdmin(userId, userName) {
+            if (!confirm(`Möchten Sie ${userName} wirklich zum Admin ernennen?\n\nAdmins haben Zugriff auf alle Verwaltungsfunktionen.`)) {
+                return;
+            }
+
+            try {
+                const result = await api.promoteToAdmin(userId);
+                showAlert('success', `${userName} wurde erfolgreich zum Admin ernannt.`);
+                loadUsers();
+            } catch (error) {
+                console.error('Error promoting user:', error);
+                showAlert('error', error.message || 'Fehler beim Ernennen zum Admin');
+            }
+        }
+
+        async function demoteAdmin(userId, userName) {
+            if (!confirm(`Möchten Sie ${userName} wirklich die Admin-Rechte entziehen?\n\nDer Benutzer wird zu einem normalen Benutzer herabgestuft.`)) {
+                return;
+            }
+
+            try {
+                const result = await api.demoteAdmin(userId);
+                showAlert('success', `Admin-Rechte von ${userName} wurden erfolgreich entzogen.`);
+                loadUsers();
+            } catch (error) {
+                console.error('Error demoting admin:', error);
+                showAlert('error', error.message || 'Fehler beim Entziehen der Admin-Rechte');
+            }
+        }
+
         function showAlert(type, message) {
             const container = document.getElementById('alert-container');
             container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
             setTimeout(() => container.innerHTML = '', 5000);
         }
     </script>
+
+    <style>
+        .badge-super-admin {
+            background-color: #d32f2f;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .badge-admin {
+            background-color: #1976d2;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .btn-promote {
+            background-color: #1976d2;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-promote:hover {
+            background-color: #1565c0;
+        }
+
+        .btn-demote {
+            background-color: #f57c00;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-demote:hover {
+            background-color: #ef6c00;
+        }
+    </style>
 </body>
 </html>

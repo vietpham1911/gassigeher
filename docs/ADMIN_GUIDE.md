@@ -15,23 +15,39 @@
 
 ### Wie werde ich Administrator?
 
-Administratoren werden über die Umgebungsvariable `ADMIN_EMAILS` definiert:
+**Erste Installation:**
 
-```bash
-ADMIN_EMAILS=admin@example.com,admin2@example.com
-```
+Bei der ersten Installation wird automatisch ein **Super Admin** erstellt:
+1. Das System erkennt eine leere Datenbank
+2. Super Admin wird mit den Zugangsdaten aus `.env` (`SUPER_ADMIN_EMAIL`) erstellt
+3. Zufälliges, sicheres Passwort wird generiert
+4. Zugangsdaten werden angezeigt:
+   - In der Konsole beim Start
+   - In der Datei `SUPER_ADMIN_CREDENTIALS.txt`
+5. 3 Test-Benutzer, 5 Test-Hunde, 3 Test-Buchungen werden erstellt
+
+**Als zusätzlicher Administrator:**
+
+Nur der **Super Admin** kann weitere Administratoren ernennen:
+1. Sie müssen sich zunächst als normaler Benutzer registrieren
+2. Verifizieren Sie Ihre E-Mail-Adresse
+3. Der Super Admin geht zu "Benutzerverwaltung"
+4. Der Super Admin klickt bei Ihrem Account auf "Zu Admin ernennen"
+5. Sie erhalten Admin-Rechte sofort (keine E-Mail)
+6. Beim nächsten Login haben Sie Zugriff auf alle Admin-Funktionen
 
 **Wichtig**:
-- Änderungen erfordern Neustart des Servers
-- Verwenden Sie nur vertrauenswürdige E-Mail-Adressen
-- Admins haben volle Kontrolle über das System
+- Es gibt nur **einen** Super Admin (ID=1)
+- Super Admin kann nicht gelöscht oder herabgestuft werden
+- Reguläre Admins können KEINE anderen Admins ernennen
+- Weitere Details siehe Abschnitt "Administrator-Verwaltung"
 
 ### Anmelden
 
-1. Registrieren Sie sich mit Ihrer Admin-E-Mail
-2. Verifizieren Sie Ihre E-Mail wie normale Nutzer
-3. Melden Sie sich an
-4. Sie werden automatisch zur Admin-Seite weitergeleitet
+1. Gehen Sie zur Login-Seite
+2. Melden Sie sich mit Ihrer E-Mail und Passwort an
+3. Wenn Sie Admin-Rechte haben, werden Sie automatisch zur Admin-Seite weitergeleitet
+4. Super Admin sieht zusätzliche Funktionen (z.B. "Zu Admin ernennen" Buttons)
 
 ---
 
@@ -307,6 +323,157 @@ Nutzen Sie Filter:
 3. Optional: Geben Sie eine Willkommensnachricht ein
 4. Bestätigen Sie
 5. Der Nutzer erhält eine E-Mail
+
+---
+
+## Administrator-Verwaltung (Nur Super Admin)
+
+**Wichtig:** Nur der Super Admin kann andere Benutzer zu Administratoren ernennen oder Admin-Rechte entziehen.
+
+### Unterschied: Super Admin vs. Admin
+
+- **Super Admin** (ID=1):
+  - Kann andere Admins ernennen und herabstufen
+  - Kann nicht gelöscht oder deaktiviert werden
+  - Wird beim ersten Start automatisch erstellt
+  - Nur eine Person kann Super Admin sein
+
+- **Regulärer Admin**:
+  - Hat Zugriff auf alle Admin-Funktionen
+  - Kann KEINE anderen Admins verwalten
+  - Kann vom Super Admin herabgestuft werden
+
+### Benutzer zum Admin ernennen
+
+**Voraussetzungen:**
+- Sie müssen als Super Admin angemeldet sein
+- Der Benutzer muss aktiv und verifiziert sein
+- Der Benutzer darf noch kein Admin sein
+
+**Vorgang:**
+1. Gehen Sie zu **"Benutzerverwaltung"** (admin-users.html)
+2. Finden Sie den Benutzer in der Liste
+3. In der Spalte "Rolle" sehen Sie "Benutzer"
+4. Klicken Sie auf **"Zu Admin ernennen"**
+5. Bestätigen Sie die Aktion im Dialog:
+   ```
+   Möchten Sie [Name] wirklich zum Admin ernennen?
+
+   Admins haben Zugriff auf alle Verwaltungsfunktionen.
+   ```
+6. Nach Bestätigung:
+   - Benutzer erhält sofort Admin-Rechte
+   - Badge ändert sich zu "Admin"
+   - Benutzer kann sich sofort mit Admin-Rechten anmelden
+   - Alle Admin-Seiten sind zugänglich
+
+**Wichtig:** Es gibt KEINE automatische E-Mail-Benachrichtigung. Informieren Sie den neuen Admin persönlich!
+
+### Admin-Rechte entziehen
+
+**Voraussetzungen:**
+- Sie müssen als Super Admin angemeldet sein
+- Der Benutzer muss ein regulärer Admin sein (nicht Super Admin)
+- Sie können sich selbst nicht herabstufen
+
+**Vorgang:**
+1. Gehen Sie zu **"Benutzerverwaltung"**
+2. Finden Sie den Admin in der Liste
+3. In der Spalte "Rolle" sehen Sie "Admin"
+4. Klicken Sie auf **"Admin entfernen"**
+5. Bestätigen Sie die Aktion im Dialog:
+   ```
+   Möchten Sie [Name] wirklich die Admin-Rechte entziehen?
+
+   Der Benutzer wird zu einem normalen Benutzer herabgestuft.
+   ```
+6. Nach Bestätigung:
+   - Benutzer verliert sofort Admin-Rechte
+   - Badge ändert sich zu "Benutzer"
+   - Zugriff auf Admin-Seiten wird gesperrt
+   - Aktive Admin-Session wird ungültig
+
+**Wichtig:** Informieren Sie den betroffenen Benutzer über die Änderung!
+
+### Super Admin Passwort ändern
+
+**Wichtig:** Das Super Admin Passwort kann NICHT über die Web-Oberfläche geändert werden!
+
+**Vorgang:**
+1. Öffnen Sie die Datei **`SUPER_ADMIN_CREDENTIALS.txt`** im Hauptverzeichnis
+2. Die Datei sieht so aus:
+   ```
+   =============================================================
+   GASSIGEHER - SUPER ADMIN CREDENTIALS
+   =============================================================
+
+   EMAIL: admin@yourshelter.com
+   PASSWORD: aktuelles-passwort-hier
+
+   CREATED: 2025-01-23 10:00:00
+   LAST UPDATED: 2025-01-23 10:00:00
+   =============================================================
+   ```
+3. Ändern Sie die Zeile `PASSWORD:` zu Ihrem neuen Passwort
+4. Speichern Sie die Datei
+5. Starten Sie den Gassigeher-Server neu:
+   ```bash
+   systemctl restart gassigeher  # Linux
+   ```
+6. Die Datei wird automatisch aktualisiert mit:
+   ```
+   LAST UPDATED: [neues Datum]
+   PASSWORD CHANGE CONFIRMED: ✓
+   ```
+7. Melden Sie sich mit dem neuen Passwort an
+
+**Sicherheitshinweise:**
+- Verwenden Sie ein starkes Passwort (mind. 12 Zeichen)
+- Speichern Sie die Datei sicher (wird automatisch mit 600 Rechten erstellt)
+- Die Datei ist in `.gitignore` und wird NICHT ins Git übertragen
+- Bewahren Sie eine Kopie an sicherem Ort auf
+
+### Wer ist Super Admin?
+
+**Bei frischer Installation:**
+- Der Super Admin wird automatisch erstellt
+- E-Mail-Adresse kommt aus `.env` Datei: `SUPER_ADMIN_EMAIL`
+- Passwort wird zufällig generiert und angezeigt:
+  - In der Konsole beim ersten Start
+  - In der Datei `SUPER_ADMIN_CREDENTIALS.txt`
+
+**Bei bestehender Installation:**
+- Super Admin ist der Benutzer mit ID=1
+- Wurde manuell in der Datenbank gesetzt
+
+**So prüfen Sie, ob Sie Super Admin sind:**
+1. Melden Sie sich an
+2. Gehen Sie zu "Benutzerverwaltung"
+3. Wenn Sie die Buttons "Zu Admin ernennen" und "Admin entfernen" sehen, sind Sie Super Admin
+4. Wenn nicht, sind Sie regulärer Admin
+
+### Tipps zur Admin-Verwaltung
+
+**Wie viele Admins brauchen Sie?**
+- **Kleines Tierheim (< 50 Nutzer):** 1-2 Admins reichen
+- **Mittleres Tierheim (50-200 Nutzer):** 2-4 Admins empfohlen
+- **Großes Tierheim (> 200 Nutzer):** 3-6 Admins je nach Arbeitsaufwand
+
+**Wer sollte Admin werden?**
+- ✅ Vertrauenswürdige Mitarbeiter
+- ✅ Langfristig beim Tierheim tätig
+- ✅ Technisch versiert (grundlegendes Computer-Wissen)
+- ✅ Verantwortungsbewusst im Umgang mit Nutzerdaten
+- ❌ Nicht: Ehrenamtliche ohne feste Bindung
+- ❌ Nicht: Unerfahrene Nutzer
+
+**Best Practices:**
+- Ernennen Sie Admins nur nach Bedarf
+- Dokumentieren Sie, wer Admin ist und warum
+- Überprüfen Sie regelmäßig (alle 6 Monate), ob alle Admins noch benötigt werden
+- Entziehen Sie Admin-Rechte sofort, wenn jemand das Tierheim verlässt
+- Informieren Sie neue Admins über ihre Verantwortung
+- Geben Sie neuen Admins eine Einführung in die Admin-Funktionen
 
 ---
 

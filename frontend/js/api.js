@@ -293,6 +293,14 @@ class API {
         return this.request('PUT', `/users/${id}/activate`, { message });
     }
 
+    async promoteToAdmin(userId) {
+        return this.request('POST', `/admin/users/${userId}/promote`);
+    }
+
+    async demoteAdmin(userId) {
+        return this.request('POST', `/admin/users/${userId}/demote`);
+    }
+
     // REACTIVATION REQUEST ENDPOINTS
 
     async createReactivationRequest(email) {

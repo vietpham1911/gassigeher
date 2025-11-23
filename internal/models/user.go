@@ -15,6 +15,9 @@ type User struct {
 	Phone                    *string    `json:"phone,omitempty"`
 	PasswordHash             *string    `json:"-"`
 	ExperienceLevel          string     `json:"experience_level"`
+	// DONE: Admin flags
+	IsAdmin                  bool       `json:"is_admin"`
+	IsSuperAdmin             bool       `json:"is_super_admin"`
 	IsVerified               bool       `json:"is_verified"`
 	IsActive                 bool       `json:"is_active"`
 	IsDeleted                bool       `json:"is_deleted"`

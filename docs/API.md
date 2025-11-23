@@ -121,10 +121,11 @@ Login and receive JWT token.
     "name": "Max Mustermann",
     "email": "max@example.com",
     "experience_level": "green",
+    "is_admin": false,
+    "is_super_admin": false,
     "is_verified": true,
     "is_active": true
-  },
-  "is_admin": false
+  }
 }
 ```
 
@@ -853,6 +854,72 @@ Activate a user account.
   "message": "User activated successfully"
 }
 ```
+
+---
+
+### Promote User to Admin
+`POST /admin/users/:id/promote` 🔒 Super Admin Only
+
+Promote a user to admin role. Only the Super Admin can perform this action.
+
+**Authorization:** Bearer token (Super Admin required)
+
+**Response:** `200 OK`
+```json
+{
+  "message": "User promoted to admin successfully",
+  "user": {
+    "id": 123,
+    "name": "Anna Schmidt",
+    "email": "anna@shelter.com",
+    "experience_level": "blue",
+    "is_admin": true,
+    "is_super_admin": false,
+    "is_active": true,
+    "is_verified": true,
+    "created_at": "2025-01-10T09:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - User is already an admin
+- `400 Bad Request` - Cannot modify Super Admin
+- `403 Forbidden` - Not Super Admin
+- `404 Not Found` - User not found
+
+---
+
+### Revoke Admin Privileges
+`POST /admin/users/:id/demote` 🔒 Super Admin Only
+
+Revoke admin privileges from a user. Only the Super Admin can perform this action.
+
+**Authorization:** Bearer token (Super Admin required)
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Admin privileges revoked successfully",
+  "user": {
+    "id": 123,
+    "name": "Anna Schmidt",
+    "email": "anna@shelter.com",
+    "experience_level": "blue",
+    "is_admin": false,
+    "is_super_admin": false,
+    "is_active": true,
+    "is_verified": true,
+    "created_at": "2025-01-10T09:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - User is not an admin
+- `400 Bad Request` - Cannot demote Super Admin
+- `403 Forbidden` - Not Super Admin
+- `404 Not Found` - User not found
 
 ---
 
