@@ -42,39 +42,47 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 // CORSMiddleware adds CORS headers
 // BUG FIX #1: Restrict CORS to specific origins instead of "*"
-func CORSMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allowed origins for CORS
-		allowedOrigins := []string{
-			"http://localhost:8080",
-			"https://gassi.cuong.net",
-			"https://www.gassi.cuong.net",
-		}
-
-		origin := r.Header.Get("Origin")
-		for _, allowedOrigin := range allowedOrigins {
-			if origin == allowedOrigin {
-				w.Header().Set("Access-Control-Allow-Origin", origin)
-				break
+// Accepts baseURL from config for dynamic CORS origin configuration
+func CORSMiddleware(baseURL string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Default to localhost if baseURL not provided
+			if baseURL == "" {
+				baseURL = "http://localhost:8080"
 			}
-		}
 
-		// If no origin header or not in allowed list, allow same-origin requests
-		if origin == "" {
-			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
-		}
+			// Allowed origins for CORS (configurable base + additional domains)
+			allowedOrigins := []string{
+				baseURL,
+				"https://gassi.cuong.net",
+				"https://www.gassi.cuong.net",
+			}
 
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
+			origin := r.Header.Get("Origin")
+			for _, allowedOrigin := range allowedOrigins {
+				if origin == allowedOrigin {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+					break
+				}
+			}
 
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
+			// If no origin header or not in allowed list, allow same-origin requests
+			if origin == "" {
+				w.Header().Set("Access-Control-Allow-Origin", baseURL)
+			}
 
-		next.ServeHTTP(w, r)
-	})
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 // DONE: BUG #1 FIXED - CORS now restricted to specific allowed origins

@@ -182,7 +182,7 @@ func TestCORSMiddleware(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	handler := CORSMiddleware(testHandler)
+	handler := CORSMiddleware("http://localhost:8080")(testHandler)
 
 	t.Run("adds CORS headers to GET request", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/test", nil)

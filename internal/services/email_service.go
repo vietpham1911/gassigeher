@@ -10,6 +10,7 @@ import (
 // EmailService handles sending emails via any email provider
 type EmailService struct {
 	provider EmailProvider
+	baseURL  string // Base URL for email links
 }
 
 // NewEmailService creates a new email service with the specified provider
@@ -39,8 +40,15 @@ func NewEmailService(config *EmailConfig) (*EmailService, error) {
 		log.Printf("BCC admin copy enabled: %s", config.BCCAdmin)
 	}
 
+	// Use default base URL if not provided
+	baseURL := config.BaseURL
+	if baseURL == "" {
+		baseURL = "http://localhost:8080"
+	}
+
 	return &EmailService{
 		provider: provider,
+		baseURL:  baseURL,
 	}, nil
 }
 
@@ -89,11 +97,11 @@ func (s *EmailService) SendVerificationEmail(to, name, token string) error {
             <p>Hallo {{.Name}},</p>
             <p>vielen Dank für Ihre Registrierung bei Gassigeher! Bitte bestätigen Sie Ihre E-Mail-Adresse, um Ihr Konto zu aktivieren.</p>
             <p style="text-align: center;">
-                <a href="http://localhost:8080/verify?token={{.Token}}" class="button">E-Mail-Adresse bestätigen</a>
+                <a href="{{.BaseURL}}/verify?token={{.Token}}" class="button">E-Mail-Adresse bestätigen</a>
             </p>
             <p>Oder kopieren Sie diesen Link in Ihren Browser:</p>
             <p style="word-break: break-all; font-size: 12px; color: #666;">
-                http://localhost:8080/verify?token={{.Token}}
+                {{.BaseURL}}/verify?token={{.Token}}
             </p>
             <p>Dieser Link ist 24 Stunden gültig.</p>
             <p>Wenn Sie sich nicht bei Gassigeher registriert haben, können Sie diese E-Mail ignorieren.</p>
@@ -108,7 +116,11 @@ func (s *EmailService) SendVerificationEmail(to, name, token string) error {
 
 	t := template.Must(template.New("verification").Parse(tmpl))
 	var body bytes.Buffer
-	if err := t.Execute(&body, map[string]string{"Name": name, "Token": token}); err != nil {
+	if err := t.Execute(&body, map[string]string{
+		"Name":    name,
+		"Token":   token,
+		"BaseURL": s.baseURL,
+	}); err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 
@@ -167,7 +179,7 @@ func (s *EmailService) SendWelcomeEmail(to, name string) error {
             <p>Bei Fragen oder Problemen wenden Sie sich bitte an unseren Support.</p>
 
             <p style="text-align: center; margin-top: 30px;">
-                <a href="http://localhost:8080" style="display: inline-block; padding: 12px 30px; background-color: #82b965; color: white; text-decoration: none; border-radius: 6px;">Zur Anwendung</a>
+                <a href="{{.BaseURL}}" style="display: inline-block; padding: 12px 30px; background-color: #82b965; color: white; text-decoration: none; border-radius: 6px;">Zur Anwendung</a>
             </p>
         </div>
         <div class="footer">
@@ -180,7 +192,10 @@ func (s *EmailService) SendWelcomeEmail(to, name string) error {
 
 	t := template.Must(template.New("welcome").Parse(tmpl))
 	var body bytes.Buffer
-	if err := t.Execute(&body, map[string]string{"Name": name}); err != nil {
+	if err := t.Execute(&body, map[string]string{
+		"Name":    name,
+		"BaseURL": s.baseURL,
+	}); err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 
@@ -215,11 +230,11 @@ func (s *EmailService) SendPasswordResetEmail(to, name, token string) error {
             <p>Hallo {{.Name}},</p>
             <p>Sie haben eine Anfrage zum Zurücksetzen Ihres Passworts gestellt. Klicken Sie auf den Button unten, um ein neues Passwort festzulegen.</p>
             <p style="text-align: center;">
-                <a href="http://localhost:8080/reset-password?token={{.Token}}" class="button">Neues Passwort festlegen</a>
+                <a href="{{.BaseURL}}/reset-password?token={{.Token}}" class="button">Neues Passwort festlegen</a>
             </p>
             <p>Oder kopieren Sie diesen Link in Ihren Browser:</p>
             <p style="word-break: break-all; font-size: 12px; color: #666;">
-                http://localhost:8080/reset-password?token={{.Token}}
+                {{.BaseURL}}/reset-password?token={{.Token}}
             </p>
             <div class="warning">
                 <strong>⚠️ Wichtig:</strong> Dieser Link ist nur 1 Stunde gültig.
@@ -236,7 +251,11 @@ func (s *EmailService) SendPasswordResetEmail(to, name, token string) error {
 
 	t := template.Must(template.New("reset").Parse(tmpl))
 	var body bytes.Buffer
-	if err := t.Execute(&body, map[string]string{"Name": name, "Token": token}); err != nil {
+	if err := t.Execute(&body, map[string]string{
+		"Name":    name,
+		"Token":   token,
+		"BaseURL": s.baseURL,
+	}); err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 
@@ -713,7 +732,7 @@ func (s *EmailService) SendExperienceLevelApproved(to, name, level string, messa
             <p>Sie können jetzt sofort Hunde Ihres neuen Levels buchen!</p>
 
             <p style="text-align: center; margin-top: 30px;">
-                <a href="http://localhost:8080/dogs.html" style="display: inline-block; padding: 12px 30px; background-color: #82b965; color: white; text-decoration: none; border-radius: 6px;">Hunde anzeigen</a>
+                <a href="{{.BaseURL}}/dogs.html" style="display: inline-block; padding: 12px 30px; background-color: #82b965; color: white; text-decoration: none; border-radius: 6px;">Hunde anzeigen</a>
             </p>
         </div>
         <div class="footer">
@@ -727,8 +746,9 @@ func (s *EmailService) SendExperienceLevelApproved(to, name, level string, messa
 	t := template.Must(template.New("approved").Parse(tmpl))
 	var body bytes.Buffer
 	data := map[string]interface{}{
-		"Name":  name,
-		"Level": levelLabel,
+		"Name":    name,
+		"Level":   levelLabel,
+		"BaseURL": s.baseURL,
 		"Message": func() string {
 			if message != nil {
 				return *message

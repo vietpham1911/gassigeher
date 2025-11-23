@@ -41,4 +41,7 @@ type EmailConfig struct {
 	// Optional: BCC all emails to this address for audit trail
 	// Leave empty to disable
 	BCCAdmin string
+
+	// Base URL for email links (e.g., "https://gassigeher.com")
+	BaseURL string
 }

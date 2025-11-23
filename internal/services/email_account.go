@@ -112,7 +112,7 @@ func (s *EmailService) SendAccountReactivated(to, name string, message *string) 
             {{end}}
 
             <p style="text-align: center; margin-top: 30px;">
-                <a href="http://localhost:8080/login.html" style="display: inline-block; padding: 12px 30px; background-color: #82b965; color: white; text-decoration: none; border-radius: 6px;">Jetzt anmelden</a>
+                <a href="{{.BaseURL}}/login.html" style="display: inline-block; padding: 12px 30px; background-color: #82b965; color: white; text-decoration: none; border-radius: 6px;">Jetzt anmelden</a>
             </p>
         </div>
         <div class="footer">
@@ -126,7 +126,8 @@ func (s *EmailService) SendAccountReactivated(to, name string, message *string) 
 	t := template.Must(template.New("reactivated").Parse(tmpl))
 	var body bytes.Buffer
 	data := map[string]interface{}{
-		"Name": name,
+		"Name":    name,
+		"BaseURL": s.baseURL,
 		"Message": func() string {
 			if message != nil {
 				return *message

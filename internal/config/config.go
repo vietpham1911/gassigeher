@@ -72,6 +72,7 @@ type Config struct {
 	// Server
 	Port        string
 	Environment string
+	BaseURL     string // Base URL for email links (e.g., "https://gassigeher.com")
 }
 
 // Load loads configuration from environment variables
@@ -137,6 +138,7 @@ func Load() *Config {
 		// Server
 		Port:        getEnv("PORT", "8080"),
 		Environment: getEnv("ENVIRONMENT", "development"),
+		BaseURL:     getEnv("BASE_URL", "http://localhost:8080"),
 	}
 }
 

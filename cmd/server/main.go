@@ -45,7 +45,7 @@ func main() {
 	// Apply global middleware
 	router.Use(middleware.LoggingMiddleware)
 	router.Use(middleware.SecurityHeadersMiddleware)
-	router.Use(middleware.CORSMiddleware)
+	router.Use(middleware.CORSMiddleware(cfg.BaseURL))
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(db, cfg)
