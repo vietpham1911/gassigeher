@@ -406,6 +406,8 @@ func (r *UserRepository) Activate(userID int) error {
 		UPDATE users SET
 			is_active = 1,
 			reactivated_at = ?,
+			deactivated_at = NULL,
+			deactivation_reason = NULL,
 			updated_at = ?
 		WHERE id = ?
 	`
