@@ -76,7 +76,6 @@ func TestBlockedDateHandler_ListBlockedDates(t *testing.T) {
 
 // DONE: TestBlockedDateHandler_CreateBlockedDate tests creating blocked dates (admin only)
 func TestBlockedDateHandler_CreateBlockedDate(t *testing.T) {
-	t.Skip("TODO: Fix this test - fails in CI due to database state issue")
 	db := testutil.SetupTestDB(t)
 	cfg := &config.Config{
 		JWTSecret:          "test-secret",
@@ -109,7 +108,9 @@ func TestBlockedDateHandler_CreateBlockedDate(t *testing.T) {
 		var response map[string]interface{}
 		json.Unmarshal(rec.Body.Bytes(), &response)
 
-		if response["id"] == nil {
+		blockedDate := response["blocked_date"].(map[string]interface{})
+
+		if blockedDate["id"] == nil {
 			t.Error("Expected blocked date ID in response")
 		}
 	})
