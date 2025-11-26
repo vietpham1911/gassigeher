@@ -10,14 +10,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Create data directory
+        run: New-Item -ItemType Directory -Force -Path data
+      - name: Create uploads directory
+        run: New-Item -ItemType Directory -Force -Path uploads
+      - name: Backup database
+        run: Copy-Item -Path "./data/gassigeher.db" -Destination "./data/gassigeher.db.backup" -ErrorAction SilentlyContinue
+        continue-on-error: true
+      - name: Tag current image as previous
+        run: podman tag gassigeher:latest gassigeher:previous
+        continue-on-error: true
       - name: Remove old container
         run: podman rm -f gassigeher
         continue-on-error: true
       - name: Build image
         run: podman build -t gassigeher:latest .
-      - name: Create data directory
-        run: New-Item -ItemType Directory -Force -Path data
-      - name: Create uploads directory
-        run: New-Item -ItemType Directory -Force -Path uploads
       - name: Run new container
         run: podman run -d --name gassigeher -p 8888:8888 -v ./data:/app/data:Z -v ./uploads:/app/uploads:Z -e DATABASE_PATH=/app/data/gassigeher.db -e JWT_SECRET=${{ secrets.JWT_SECRET }} -e SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }} -e BASE_URL=${{ secrets.BASE_URL }} gassigeher:latest
