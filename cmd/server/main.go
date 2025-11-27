@@ -23,14 +23,13 @@ func main() {
 
 	// Check if the .env file exists
 	if _, err := os.Stat(*envPath); os.IsNotExist(err) {
-		log.Fatalf("Error: .env file not found at path: %s", *envPath)
+		log.Printf("No .env found, using env vars")
+	} else {
+		if err := godotenv.Load(*envPath); err != nil {
+			log.Fatalf("Error loading .env: %v", err)
+		}
+		log.Printf("Loaded from: %s", *envPath)
 	}
-
-	// Load environment variables from specified path
-	if err := godotenv.Load(*envPath); err != nil {
-		log.Fatalf("Error loading .env file from %s: %v", *envPath, err)
-	}
-	log.Printf("Loaded environment variables from: %s", *envPath)
 
 	// Load configuration
 	cfg := config.Load()
