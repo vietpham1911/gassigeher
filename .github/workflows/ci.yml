@@ -23,6 +23,7 @@ jobs:
         working-directory: e2e-tests
       - name: Install browser
         run: npx playwright install chromium --with-deps
+        working-directory: e2e-tests
       - name: Start Go-server
         run: |
           go build -o gassigeher ./cmd/server
