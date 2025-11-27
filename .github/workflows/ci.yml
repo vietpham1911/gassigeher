@@ -26,7 +26,9 @@ jobs:
       - name: Start Go-server
         run: |
           go build -o gassigeher ./cmd/server
-          DATABASE_PATH=./test.db JWT_SECRET=test SUPER_ADMIN_EMAIL=test@test.com ./gassigeher &
+          DATABASE_PATH=./test.db JWT_SECRET=test SUPER_ADMIN_EMAIL=test@test.com ./gassigeher > server.log 2>&1 &
+          sleep 3
+          cat server.log
       - name: Wait for server
         run: |
           for i in {1..30}; do
