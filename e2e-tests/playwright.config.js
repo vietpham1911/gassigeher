@@ -23,10 +23,10 @@ module.exports = defineConfig({
 
   use: {
     // Base URL for all tests
-    baseURL: 'http://localhost:8080',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8080',
 
     // Browser options
-    headless: false,  // See browser during local dev
+    headless: process.env.CI ? true : false,  // See browser during local dev
     viewport: { width: 1920, height: 1080 },
 
     // Screenshots and videos

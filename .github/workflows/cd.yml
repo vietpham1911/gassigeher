@@ -36,8 +36,22 @@ jobs:
           Start-Sleep -Seconds 5
           $response = Invoke-WebRequest -Uri "http://localhost:8888/api/health" -UseBasicParsing
           if ($response.StatusCode -ne 200) { exit 1 }
+      - name: Node.js Setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install chromium --with-deps
+        working-directory: e2e-tests
+      - name: Run playwright
+        run: npm test
+        working-directory: e2e-tests
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:8888
       - name: Rollback
-        if: failure() && steps.verify.outcome == 'failure'
+        if: failure()
         run: |
           podman rm -f gassigeher
           Copy-Item -Path "./data/gassigeher.db.backup" -Destination "./data/gassigeher.db" -ErrorAction SilentlyContinue
