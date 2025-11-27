@@ -81,11 +81,14 @@ func main() {
 	experienceHandler := handlers.NewExperienceRequestHandler(db, cfg)
 	reactivationHandler := handlers.NewReactivationRequestHandler(db, cfg)
 	dashboardHandler := handlers.NewDashboardHandler(db, cfg)
+	healthHandler := handlers.NewHealthHandler()
 
 	// Start cron service for auto-completion and reminders
 	cronService := cron.NewCronService(db)
 	cronService.Start()
 	defer cronService.Stop()
+
+	router.HandleFunc("/api/health", healthHandler.Health).Methods("GET")
 
 	// Public routes
 	router.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")
