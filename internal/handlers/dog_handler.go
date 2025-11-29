@@ -320,7 +320,7 @@ func (h *DogHandler) DeleteDog(w http.ResponseWriter, r *http.Request) {
 					booking.User.Name,
 					dog.Name,
 					booking.Date,
-					booking.WalkType,
+					booking.ScheduledTime,
 				)
 			}
 		}

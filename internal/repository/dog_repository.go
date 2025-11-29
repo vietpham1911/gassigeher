@@ -303,7 +303,7 @@ func (r *DogRepository) GetFutureBookings(dogID int) ([]*models.Booking, error) 
 	currentDate := time.Now().Format("2006-01-02")
 	query := `
 		SELECT
-			b.id, b.user_id, b.dog_id, b.date, b.walk_type, b.scheduled_time, b.status,
+			b.id, b.user_id, b.dog_id, b.date, b.scheduled_time, b.status,
 			b.completed_at, b.user_notes, b.admin_cancellation_reason, b.created_at, b.updated_at,
 			u.name as user_name, u.email as user_email
 		FROM bookings b
@@ -330,7 +330,6 @@ func (r *DogRepository) GetFutureBookings(dogID int) ([]*models.Booking, error) 
 			&booking.UserID,
 			&booking.DogID,
 			&booking.Date,
-			&booking.WalkType,
 			&booking.ScheduledTime,
 			&booking.Status,
 			&booking.CompletedAt,

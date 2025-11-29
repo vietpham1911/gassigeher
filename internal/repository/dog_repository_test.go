@@ -538,7 +538,7 @@ func TestDogRepository_Delete(t *testing.T) {
 
 		// Create future booking for this dog
 		futureDate := time.Now().AddDate(0, 0, 7).Format("2006-01-02")
-		testutil.SeedTestBooking(t, db, userID, dogID, futureDate, "morning", "09:00", "scheduled")
+		testutil.SeedTestBooking(t, db, userID, dogID, futureDate, "09:00", "scheduled")
 
 		// Try to delete dog
 		err := repo.Delete(dogID)
@@ -560,7 +560,7 @@ func TestDogRepository_Delete(t *testing.T) {
 
 		// Create past booking for this dog
 		pastDate := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
-		testutil.SeedTestBooking(t, db, userID, dogID, pastDate, "evening", "16:00", "completed")
+		testutil.SeedTestBooking(t, db, userID, dogID, pastDate, "16:00", "completed")
 
 		// Should be able to delete dog with past bookings only
 		err := repo.Delete(dogID)

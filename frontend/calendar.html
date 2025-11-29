@@ -104,8 +104,8 @@
             color: #999;
         }
 
-        /* Walk Type Badges */
-        .walk-type {
+        /* Time Slot Badges */
+        .time-slot, .walk-type {
             font-size: 0.8rem;
             margin: 4px 0;
             padding: 4px 8px;
@@ -116,12 +116,12 @@
             gap: 4px;
         }
 
-        .walk-type.available {
+        .time-slot.available, .walk-type.available {
             background: rgba(130, 185, 101, 0.2);
             color: var(--secondary-green);
         }
 
-        .walk-type.booked {
+        .time-slot.booked, .walk-type.booked {
             background: rgba(243, 156, 18, 0.2);
             color: #856404;
         }
@@ -279,7 +279,7 @@
                 <ul>
                     <li><a href="/dashboard.html" data-i18n="nav.dashboard">Dashboard</a></li>
                     <li><a href="/dogs.html" data-i18n="dogs.all_dogs">Hunde</a></li>
-                    <li><a href="/calendar.html">Kalender</a></li>
+                    <li><a href="/calendar.html" data-i18n="nav.calendar">Kalender</a></li>
                     <li><a href="/profile.html" style="display: flex; align-items: center; gap: 8px;">
                         <span id="header-photo" style="width: 32px; height: 32px; border-radius: 50%; background: #ddd; display: inline-flex; align-items: center; justify-content: center; overflow: hidden;">👤</span>
                         <span data-i18n="nav.profile">Profil</span>
@@ -433,7 +433,7 @@
                         id: b.id,
                         dog_id: b.dog_id,
                         date: b.date,
-                        walk_type: b.walk_type,
+                        scheduled_time: b.scheduled_time,
                         status: b.status
                     });
                 });
@@ -561,35 +561,26 @@
                 </div>`;
             }
 
-            const morningBooked = data.dogBookings.some(b => b.walk_type === 'morning');
-            const eveningBooked = data.dogBookings.some(b => b.walk_type === 'evening');
+            const bookedTimes = data.dogBookings.map(b => b.scheduled_time);
+            const hasBookings = bookedTimes.length > 0;
 
-            if (morningBooked && eveningBooked) {
-                return `<div class="calendar-cell booked">
-                    <div class="walk-type booked">🌅 Gebucht</div>
-                    <div class="walk-type booked">🌆 Gebucht</div>
+            if (hasBookings) {
+                // Show booked times
+                let content = '';
+                bookedTimes.forEach(time => {
+                    content += `<div class="walk-type booked">⏰ ${time}</div>`;
+                });
+                content += '<div class="walk-type available">+ Weitere Zeiten</div>';
+
+                return `<div class="calendar-cell booked" onclick="quickBook(${dog.id}, '${date}')" title="Klicken zum Buchen: ${dog.name} am ${formatDateGerman(date)}">
+                    ${content}
                 </div>`;
             }
 
-            let cellClass = 'available';
-            let content = '';
-
-            if (morningBooked) {
-                cellClass = 'booked';
-                content += '<div class="walk-type booked">🌅 Gebucht</div>';
-                content += '<div class="walk-type available">🌆 Verfügbar</div>';
-            } else if (eveningBooked) {
-                cellClass = 'booked';
-                content += '<div class="walk-type available">🌅 Verfügbar</div>';
-                content += '<div class="walk-type booked">🌆 Gebucht</div>';
-            } else {
-                cellClass = 'available';
-                content += '<div class="walk-type available">🌅 Verfügbar</div>';
-                content += '<div class="walk-type available">🌆 Verfügbar</div>';
-            }
-
-            return `<div class="calendar-cell ${cellClass}" onclick="quickBook(${dog.id}, '${date}', ${!morningBooked}, ${!eveningBooked})" title="Klicken zum Buchen: ${dog.name} am ${formatDateGerman(date)}">
-                ${content}
+            // Fully available
+            return `<div class="calendar-cell available" onclick="quickBook(${dog.id}, '${date}')" title="Klicken zum Buchen: ${dog.name} am ${formatDateGerman(date)}">
+                <div class="walk-type available">✅ Verfügbar</div>
+                <div style="font-size: 0.7rem; color: var(--text-gray);">Alle Zeiten frei</div>
             </div>`;
         }
 
@@ -610,8 +601,8 @@
             return labels[category] || category;
         }
 
-        function quickBook(dogId, date, morningFree, eveningFree) {
-            console.log('[CALENDAR DEBUG] quickBook called:', {dogId, date, morningFree, eveningFree});
+        function quickBook(dogId, date) {
+            console.log('[CALENDAR DEBUG] quickBook called:', {dogId, date});
 
             const dog = allDogs.find(d => d.id === dogId);
             if (!dog) {
@@ -620,28 +611,10 @@
             }
             console.log('[CALENDAR DEBUG] Found dog:', dog);
 
-            let walkType;
-            if (morningFree && eveningFree) {
-                const userChoice = confirm('Morgenspaziergang? (OK = Morgen, Abbrechen = Abend)');
-                console.log('[CALENDAR DEBUG] User chose morning:', userChoice);
-                walkType = userChoice ? 'morning' : 'evening';
-            } else if (morningFree) {
-                walkType = 'morning';
-                console.log('[CALENDAR DEBUG] Only morning free');
-            } else if (eveningFree) {
-                walkType = 'evening';
-                console.log('[CALENDAR DEBUG] Only evening free');
-            } else {
-                console.error('[CALENDAR ERROR] No free times');
-                showAlert('error', 'Keine freien Zeiten an diesem Tag');
-                return;
-            }
-
-            // Redirect to dogs page with pre-filled booking
+            // Redirect to dogs page with pre-filled booking (user will select time slot there)
             const pendingBooking = {
                 dogId: dogId,
-                date: date,
-                walkType: walkType
+                date: date
             };
             console.log('[CALENDAR DEBUG] Saving pending booking to localStorage:', pendingBooking);
             console.log('[CALENDAR DEBUG] JSON.stringify:', JSON.stringify(pendingBooking));
@@ -724,22 +697,20 @@
                             <div style="color: #999;">🚫 Gesperrt</div>
                         </div>`;
                     } else {
-                        const morningBooked = cellData.dogBookings.some(b => b.walk_type === 'morning');
-                        const eveningBooked = cellData.dogBookings.some(b => b.walk_type === 'evening');
+                        const bookedTimes = cellData.dogBookings.map(b => b.scheduled_time);
+                        const hasBookings = bookedTimes.length > 0;
 
-                        if (!morningBooked || !eveningBooked) {
-                            const available = [];
-                            if (!morningBooked) available.push('🌅 Morgen');
-                            if (!eveningBooked) available.push('🌆 Abend');
-
-                            html += `<div class="day-slot available" onclick="quickBook(${dog.id}, '${dateStr}', ${!morningBooked}, ${!eveningBooked})">
+                        if (hasBookings) {
+                            // Show booked times but still allow booking other slots
+                            html += `<div class="day-slot available" onclick="quickBook(${dog.id}, '${dateStr}')">
                                 <div><strong>${dayName} ${dateDisplay}</strong></div>
-                                <div style="color: var(--primary-green); font-weight: 600;">${available.join(', ')}</div>
+                                <div style="color: #856404;">Gebucht: ${bookedTimes.join(', ')}</div>
+                                <div style="color: var(--primary-green); font-size: 0.8rem;">+ Weitere Zeiten</div>
                             </div>`;
                         } else {
-                            html += `<div class="day-slot" style="background: #f5f5f5;">
+                            html += `<div class="day-slot available" onclick="quickBook(${dog.id}, '${dateStr}')">
                                 <div><strong>${dayName} ${dateDisplay}</strong></div>
-                                <div style="color: #999;">Vollständig gebucht</div>
+                                <div style="color: var(--primary-green); font-weight: 600;">✅ Alle Zeiten verfügbar</div>
                             </div>`;
                         }
                     }

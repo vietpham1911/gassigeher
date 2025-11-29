@@ -210,10 +210,9 @@ class API {
         return this.request('PUT', `/bookings/${id}/cancel`, { reason });
     }
 
-    async moveBooking(id, date, walkType, scheduledTime, reason) {
+    async moveBooking(id, date, scheduledTime, reason) {
         return this.request('PUT', `/bookings/${id}/move`, {
             date,
-            walk_type: walkType,
             scheduled_time: scheduledTime,
             reason
         });
@@ -345,19 +344,19 @@ class API {
     }
 
     async getBookingTimeRules() {
-        return this.request('GET', '/booking-times/rules');
+        return this.request('GET', '/admin/booking-times/rules');
     }
 
     async updateBookingTimeRules(rules) {
-        return this.request('PUT', '/booking-times/rules', rules);
+        return this.request('PUT', '/admin/booking-times/rules', rules);
     }
 
     async createBookingTimeRule(rule) {
-        return this.request('POST', '/booking-times/rules', rule);
+        return this.request('POST', '/admin/booking-times/rules', rule);
     }
 
     async deleteBookingTimeRule(id) {
-        return this.request('DELETE', `/booking-times/rules/${id}`);
+        return this.request('DELETE', `/admin/booking-times/rules/${id}`);
     }
 
     // HOLIDAY ENDPOINTS
@@ -367,29 +366,29 @@ class API {
     }
 
     async createHoliday(holiday) {
-        return this.request('POST', '/holidays', holiday);
+        return this.request('POST', '/admin/holidays', holiday);
     }
 
     async updateHoliday(id, holiday) {
-        return this.request('PUT', `/holidays/${id}`, holiday);
+        return this.request('PUT', `/admin/holidays/${id}`, holiday);
     }
 
     async deleteHoliday(id) {
-        return this.request('DELETE', `/holidays/${id}`);
+        return this.request('DELETE', `/admin/holidays/${id}`);
     }
 
     // BOOKING APPROVAL ENDPOINTS
 
     async getPendingApprovalBookings() {
-        return this.request('GET', '/bookings/pending-approvals');
+        return this.request('GET', '/admin/bookings/pending-approvals');
     }
 
     async approveBooking(id) {
-        return this.request('PUT', `/bookings/${id}/approve`);
+        return this.request('PUT', `/admin/bookings/${id}/approve`);
     }
 
     async rejectBooking(id, reason) {
-        return this.request('PUT', `/bookings/${id}/reject`, { reason });
+        return this.request('PUT', `/admin/bookings/${id}/reject`, { reason });
     }
 }
 

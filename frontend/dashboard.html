@@ -15,7 +15,7 @@
                 <ul>
                     <li><a href="/dashboard.html" data-i18n="nav.dashboard">Dashboard</a></li>
                     <li><a href="/dogs.html" data-i18n="dogs.all_dogs">Hunde</a></li>
-                    <li><a href="/calendar.html">Kalender</a></li>
+                    <li><a href="/calendar.html" data-i18n="nav.calendar">Kalender</a></li>
                     <li><a href="/profile.html" style="display: flex; align-items: center; gap: 8px;">
                         <span id="header-photo" style="width: 32px; height: 32px; border-radius: 50%; background: #ddd; display: inline-flex; align-items: center; justify-content: center; overflow: hidden;">👤</span>
                         <span data-i18n="nav.profile">Profil</span>
@@ -65,13 +65,6 @@
                 <div class="form-group">
                     <label data-i18n="bookings.date">Datum</label>
                     <input type="date" id="booking-date" required>
-                </div>
-                <div class="form-group">
-                    <label data-i18n="bookings.walk_type">Spaziergang</label>
-                    <select id="booking-walk-type" required>
-                        <option value="morning" data-i18n="bookings.morning">Morgen</option>
-                        <option value="evening" data-i18n="bookings.evening">Abend</option>
-                    </select>
                 </div>
                 <div class="form-group">
                     <label data-i18n="bookings.scheduled_time">Geplante Uhrzeit</label>
@@ -143,7 +136,7 @@
                         id: b.id,
                         dog_id: b.dog_id,
                         date: b.date,
-                        walk_type: b.walk_type,
+                        scheduled_time: b.scheduled_time,
                         status: b.status,
                         user_id: b.user_id
                     });
@@ -174,7 +167,6 @@
                             <div style="flex: 1;">
                                 <h4 style="margin: 0 0 10px 0;">${booking.dog ? booking.dog.name : 'Hund #' + booking.dog_id}</h4>
                                 <p style="margin: 5px 0;">📅 ${booking.date} - ${booking.scheduled_time} Uhr</p>
-                                <p style="margin: 5px 0;">${booking.walk_type === 'morning' ? '🌅 Morgen' : '🌆 Abend'}</p>
 
                                 ${booking.approval_status === 'pending' ? `
                                     <div class="alert alert-warning" style="margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;">
@@ -228,7 +220,6 @@
                         <h4 style="margin: 0 0 10px 0;">${booking.dog ? booking.dog.name : 'Hund #' + booking.dog_id}</h4>
                         <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">
                             📅 ${booking.date} - ${booking.scheduled_time} Uhr
-                            (${booking.walk_type === 'morning' ? 'Morgen' : 'Abend'})
                         </p>
                         ${booking.user_notes ? `<p style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px;"><strong>Notizen:</strong> ${booking.user_notes}</p>` : ''}
                         ${!booking.user_notes ? `<button class="btn" style="margin-top: 10px; padding: 8px 16px;" onclick="addNotes(${booking.id})">Notizen hinzufügen</button>` : ''}

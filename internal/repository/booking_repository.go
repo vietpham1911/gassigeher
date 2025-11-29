@@ -21,8 +21,8 @@ func NewBookingRepository(db *sql.DB) *BookingRepository {
 // Create creates a new booking
 func (r *BookingRepository) Create(booking *models.Booking) error {
 	query := `
-		INSERT INTO bookings (user_id, dog_id, date, walk_type, scheduled_time, status, requires_approval, approval_status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO bookings (user_id, dog_id, date, scheduled_time, status, requires_approval, approval_status, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	now := time.Now()
@@ -43,7 +43,6 @@ func (r *BookingRepository) Create(booking *models.Booking) error {
 		booking.UserID,
 		booking.DogID,
 		booking.Date,
-		booking.WalkType,
 		booking.ScheduledTime,
 		booking.Status,
 		booking.RequiresApproval,
@@ -71,7 +70,7 @@ func (r *BookingRepository) Create(booking *models.Booking) error {
 // FindByID finds a booking by ID
 func (r *BookingRepository) FindByID(id int) (*models.Booking, error) {
 	query := `
-		SELECT id, user_id, dog_id, date, walk_type, scheduled_time, status,
+		SELECT id, user_id, dog_id, date, scheduled_time, status,
 		       completed_at, user_notes, admin_cancellation_reason, created_at, updated_at
 		FROM bookings
 		WHERE id = ?
@@ -83,7 +82,6 @@ func (r *BookingRepository) FindByID(id int) (*models.Booking, error) {
 		&booking.UserID,
 		&booking.DogID,
 		&booking.Date,
-		&booking.WalkType,
 		&booking.ScheduledTime,
 		&booking.Status,
 		&booking.CompletedAt,
@@ -107,7 +105,7 @@ func (r *BookingRepository) FindByID(id int) (*models.Booking, error) {
 // FindAll finds all bookings with optional filters
 func (r *BookingRepository) FindAll(filter *models.BookingFilterRequest) ([]*models.Booking, error) {
 	query := `
-		SELECT id, user_id, dog_id, date, walk_type, scheduled_time, status,
+		SELECT id, user_id, dog_id, date, scheduled_time, status,
 		       completed_at, user_notes, admin_cancellation_reason, created_at, updated_at
 		FROM bookings
 		WHERE 1=1
@@ -140,11 +138,6 @@ func (r *BookingRepository) FindAll(filter *models.BookingFilterRequest) ([]*mod
 			args = append(args, *filter.Status)
 		}
 
-		if filter.WalkType != nil {
-			query += " AND walk_type = ?"
-			args = append(args, *filter.WalkType)
-		}
-
 		if filter.Year != nil && filter.Month != nil {
 			// Filter by year and month
 			startDate := fmt.Sprintf("%d-%02d-01", *filter.Year, *filter.Month)
@@ -173,7 +166,6 @@ func (r *BookingRepository) FindAll(filter *models.BookingFilterRequest) ([]*mod
 			&booking.UserID,
 			&booking.DogID,
 			&booking.Date,
-			&booking.WalkType,
 			&booking.ScheduledTime,
 			&booking.Status,
 			&booking.CompletedAt,
@@ -232,16 +224,16 @@ func (r *BookingRepository) AddNotes(id int, notes string) error {
 	return nil
 }
 
-// CheckDoubleBooking checks if a dog is already booked for the given date and walk type
-func (r *BookingRepository) CheckDoubleBooking(dogID int, date, walkType string) (bool, error) {
+// CheckDoubleBooking checks if a dog is already booked for the given date and scheduled time
+func (r *BookingRepository) CheckDoubleBooking(dogID int, date, scheduledTime string) (bool, error) {
 	query := `
 		SELECT COUNT(*)
 		FROM bookings
-		WHERE dog_id = ? AND date = ? AND walk_type = ? AND status = 'scheduled'
+		WHERE dog_id = ? AND date = ? AND scheduled_time = ? AND status = 'scheduled'
 	`
 
 	var count int
-	err := r.db.QueryRow(query, dogID, date, walkType).Scan(&count)
+	err := r.db.QueryRow(query, dogID, date, scheduledTime).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to check double booking: %w", err)
 	}
@@ -282,7 +274,7 @@ func (r *BookingRepository) AutoComplete() (int, error) {
 // GetUpcoming gets upcoming bookings for a user
 func (r *BookingRepository) GetUpcoming(userID int, limit int) ([]*models.Booking, error) {
 	query := `
-		SELECT id, user_id, dog_id, date, walk_type, scheduled_time, status,
+		SELECT id, user_id, dog_id, date, scheduled_time, status,
 		       completed_at, user_notes, admin_cancellation_reason, created_at, updated_at
 		FROM bookings
 		WHERE user_id = ? AND status = 'scheduled' AND date >= ?
@@ -305,7 +297,6 @@ func (r *BookingRepository) GetUpcoming(userID int, limit int) ([]*models.Bookin
 			&booking.UserID,
 			&booking.DogID,
 			&booking.Date,
-			&booking.WalkType,
 			&booking.ScheduledTime,
 			&booking.Status,
 			&booking.CompletedAt,
@@ -340,7 +331,7 @@ func (r *BookingRepository) GetForReminders() ([]*models.Booking, error) {
 
 	// Query handles both same-day and next-day bookings
 	query := `
-		SELECT id, user_id, dog_id, date, walk_type, scheduled_time, status,
+		SELECT id, user_id, dog_id, date, scheduled_time, status,
 		       completed_at, user_notes, admin_cancellation_reason, created_at, updated_at
 		FROM bookings
 		WHERE status = 'scheduled'
@@ -362,7 +353,7 @@ func (r *BookingRepository) GetForReminders() ([]*models.Booking, error) {
 	} else {
 		// Same day - simpler query
 		simpleQuery := `
-			SELECT id, user_id, dog_id, date, walk_type, scheduled_time, status,
+			SELECT id, user_id, dog_id, date, scheduled_time, status,
 			       completed_at, user_notes, admin_cancellation_reason, created_at, updated_at
 			FROM bookings
 			WHERE status = 'scheduled'
@@ -386,7 +377,6 @@ func (r *BookingRepository) GetForReminders() ([]*models.Booking, error) {
 			&booking.UserID,
 			&booking.DogID,
 			&booking.Date,
-			&booking.WalkType,
 			&booking.ScheduledTime,
 			&booking.Status,
 			&booking.CompletedAt,
@@ -408,13 +398,12 @@ func (r *BookingRepository) GetForReminders() ([]*models.Booking, error) {
 func (r *BookingRepository) Update(booking *models.Booking) error {
 	query := `
 		UPDATE bookings
-		SET date = ?, walk_type = ?, scheduled_time = ?, updated_at = ?
+		SET date = ?, scheduled_time = ?, updated_at = ?
 		WHERE id = ?
 	`
 
 	_, err := r.db.Exec(query,
 		booking.Date,
-		booking.WalkType,
 		booking.ScheduledTime,
 		time.Now(),
 		booking.ID,
@@ -431,7 +420,7 @@ func (r *BookingRepository) Update(booking *models.Booking) error {
 func (r *BookingRepository) FindByIDWithDetails(id int) (*models.Booking, error) {
 	query := `
 		SELECT
-			b.id, b.user_id, b.dog_id, b.date, b.walk_type, b.scheduled_time, b.status,
+			b.id, b.user_id, b.dog_id, b.date, b.scheduled_time, b.status,
 			b.completed_at, b.user_notes, b.admin_cancellation_reason, b.created_at, b.updated_at,
 			u.name as user_name, u.email as user_email, u.phone as user_phone,
 			d.name as dog_name, d.breed, d.size, d.age
@@ -455,7 +444,6 @@ func (r *BookingRepository) FindByIDWithDetails(id int) (*models.Booking, error)
 		&booking.UserID,
 		&booking.DogID,
 		&booking.Date,
-		&booking.WalkType,
 		&booking.ScheduledTime,
 		&booking.Status,
 		&booking.CompletedAt,
@@ -507,7 +495,7 @@ func (r *BookingRepository) FindByIDWithDetails(id int) (*models.Booking, error)
 // GetPendingApprovalBookings returns all bookings awaiting approval
 func (r *BookingRepository) GetPendingApprovalBookings() ([]*models.Booking, error) {
 	query := `
-		SELECT b.id, b.user_id, b.dog_id, b.date, b.scheduled_time, b.walk_type,
+		SELECT b.id, b.user_id, b.dog_id, b.date, b.scheduled_time,
 		       b.status, b.completed_at, b.user_notes, b.admin_cancellation_reason,
 		       b.created_at, b.updated_at,
 		       b.requires_approval, b.approval_status, b.approved_by, b.approved_at, b.rejection_reason,
@@ -544,7 +532,7 @@ func (r *BookingRepository) GetPendingApprovalBookings() ([]*models.Booking, err
 
 		err := rows.Scan(
 			&booking.ID, &booking.UserID, &booking.DogID,
-			&booking.Date, &booking.ScheduledTime, &booking.WalkType,
+			&booking.Date, &booking.ScheduledTime,
 			&booking.Status, &completedAt, &userNotes, &adminCancellationReason,
 			&booking.CreatedAt, &booking.UpdatedAt,
 			&requiresApproval, &booking.ApprovalStatus, &approvedBy, &approvedAt, &rejectionReason,

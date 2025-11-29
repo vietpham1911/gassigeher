@@ -20,6 +20,8 @@
                     <li><a href="/admin-experience-requests.html" data-i18n="admin.manage_experience_requests">Level-Anfragen</a></li>
                     <li><a href="/admin-users.html" data-i18n="users.title">Benutzer</a></li>
                     <li><a href="/admin-reactivation-requests.html" data-i18n="reactivation.manage_requests">Reaktivierungen</a></li>
+                    <li><a href="/admin-booking-times.html" data-i18n="admin.booking_times">Buchungszeiten</a></li>
+                    <li><a href="/admin-booking-approvals.html" data-i18n="admin.booking_approvals">Genehmigungen</a></li>
                     <li><a href="/admin-settings.html" data-i18n="admin_dashboard.system_settings">Einstellungen</a></li>
                     <li><a href="/dashboard.html" class="area-switcher" data-i18n="nav.user_area">👤 Benutzer-Bereich</a></li>
                     <li><a href="#" onclick="api.logout()" data-i18n="nav.logout">Abmelden</a></li>
@@ -187,7 +189,6 @@
             container.innerHTML = bookings.map(booking => {
                 const dog = dogs[booking.dog_id] || { name: `Hund #${booking.dog_id}` };
                 const statusClass = booking.status === 'cancelled' ? 'alert-error' : (booking.status === 'completed' ? 'alert-success' : 'alert-info');
-                const walkType = booking.walk_type === 'morning' ? '🌅 Morgen' : '🌆 Abend';
 
                 return `
                     <div class="card" style="margin-bottom: 15px;">
@@ -201,7 +202,7 @@
                                     <strong>Benutzer:</strong> User #${booking.user_id}
                                 </p>
                                 <p style="margin: 5px 0;">
-                                    📅 ${booking.date} - ${booking.scheduled_time} Uhr (${walkType})
+                                    📅 ${booking.date} - ${booking.scheduled_time} Uhr
                                 </p>
                                 ${booking.admin_cancellation_reason ? `<p style="margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 4px;"><strong>Stornierungsgrund:</strong> ${booking.admin_cancellation_reason}</p>` : ''}
                                 ${booking.user_notes ? `<p style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px;"><strong>Notizen:</strong> ${booking.user_notes}</p>` : ''}
@@ -247,8 +248,6 @@
             const newDate = prompt('Neues Datum (JJJJ-MM-TT):', booking.date);
             if (!newDate) return;
 
-            const walkType = confirm('Morgenspaziergang? (OK = Morgen, Abbrechen = Abend)') ? 'morning' : 'evening';
-
             const newTime = prompt('Neue Uhrzeit (HH:MM):', booking.scheduled_time);
             if (!newTime) return;
 
@@ -256,7 +255,7 @@
             if (!reason) return;
 
             try {
-                await api.moveBooking(id, newDate, walkType, newTime, reason);
+                await api.moveBooking(id, newDate, newTime, reason);
                 showAlert('success', 'Buchung verschoben');
                 loadBookings();
             } catch (error) {

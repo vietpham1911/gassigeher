@@ -20,6 +20,8 @@
                     <li><a href="/admin-experience-requests.html" data-i18n="admin.manage_experience_requests">Level-Anfragen</a></li>
                     <li><a href="/admin-users.html" data-i18n="users.title">Benutzer</a></li>
                     <li><a href="/admin-reactivation-requests.html" data-i18n="reactivation.manage_requests">Reaktivierungen</a></li>
+                    <li><a href="/admin-booking-times.html" data-i18n="admin.booking_times">Buchungszeiten</a></li>
+                    <li><a href="/admin-booking-approvals.html" data-i18n="admin.booking_approvals">Genehmigungen</a></li>
                     <li><a href="/admin-settings.html" data-i18n="admin_dashboard.system_settings">Einstellungen</a></li>
                     <li><a href="/dashboard.html" class="area-switcher" data-i18n="nav.user_area">👤 Benutzer-Bereich</a></li>
                     <li><a href="#" onclick="api.logout()" data-i18n="nav.logout">Abmelden</a></li>
@@ -369,11 +371,10 @@
 
             // Build booking list HTML
             const bookingList = bookings.map(booking => {
-                const walkTypeLabel = booking.walk_type === 'morning' ? 'Morgen' : 'Abend';
                 const userName = booking.User?.name || 'Unbekannt';
                 return `
                     <li style="margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                        <strong>${booking.date}</strong> - ${walkTypeLabel} (${booking.scheduled_time || ''})
+                        <strong>${booking.date}</strong> - ${booking.scheduled_time || ''} Uhr
                         <br>
                         <small>Benutzer: ${userName}</small>
                     </li>

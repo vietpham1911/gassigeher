@@ -15,7 +15,7 @@
                 <ul>
                     <li><a href="/dashboard.html" data-i18n="nav.dashboard">Dashboard</a></li>
                     <li><a href="/dogs.html" data-i18n="dogs.all_dogs">Hunde</a></li>
-                    <li><a href="/calendar.html">Kalender</a></li>
+                    <li><a href="/calendar.html" data-i18n="nav.calendar">Kalender</a></li>
                     <li><a href="/profile.html" style="display: flex; align-items: center; gap: 8px;">
                         <span id="header-photo" style="width: 32px; height: 32px; border-radius: 50%; background: #ddd; display: inline-flex; align-items: center; justify-content: center; overflow: hidden;">👤</span>
                         <span data-i18n="nav.profile">Profil</span>
@@ -100,19 +100,12 @@
                     <input type="date" id="booking-date" required min="">
                 </div>
                 <div class="form-group">
-                    <label for="booking-walk-type">Spaziergangszeit *</label>
-                    <select id="booking-walk-type" required onchange="updateTimeOptions()">
-                        <option value="morning">Morgen (09:00-12:00)</option>
-                        <option value="evening">Abend (14:00-17:00)</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label for="booking-time">Uhrzeit *</label>
                     <select id="booking-time" required>
                         <option value="">Bitte wählen...</option>
                     </select>
                     <small id="time-approval-notice" class="text-warning" style="display: none; color: var(--warning-orange); margin-top: 5px; display: block;">
-                        ⚠️ Vormittagsspaziergänge erfordern eine Admin-Genehmigung
+                        ⚠️ Dieser Zeitslot erfordert eine Admin-Genehmigung
                     </small>
                 </div>
                 <!-- Time Rules Info Box -->
@@ -296,10 +289,10 @@
 
             try {
                 const pendingBooking = JSON.parse(pendingBookingStr);
-                const { dogId, date, walkType } = pendingBooking;
+                const { dogId, date, scheduledTime } = pendingBooking;
 
                 console.log('[DEBUG] Parsed pending booking:', pendingBooking);
-                console.log('[DEBUG] dogId:', dogId, 'date:', date, 'walkType:', walkType);
+                console.log('[DEBUG] dogId:', dogId, 'date:', date, 'scheduledTime:', scheduledTime);
 
                 // Clear the pending booking immediately
                 localStorage.removeItem('pendingBooking');
@@ -307,7 +300,7 @@
 
                 // Open booking modal with prefilled data
                 console.log('[DEBUG] About to call showBookingModalWithData...');
-                await showBookingModalWithData(dogId, date, walkType);
+                await showBookingModalWithData(dogId, date, scheduledTime);
                 console.log('[DEBUG] showBookingModalWithData completed');
             } catch (error) {
                 console.error('[ERROR] Failed to process pending booking:', error);
@@ -408,7 +401,8 @@
             // Setup event listeners for dynamic time loading
             setupBookingFormListeners();
 
-            updateTimeOptions();
+            // Load available time slots for today
+            loadAvailableTimeSlots(today);
 
             // Show modal
             document.getElementById('booking-modal').style.display = 'flex';
@@ -440,8 +434,8 @@
             });
         }
 
-        async function showBookingModalWithData(dogId, date, walkType) {
-            console.log('[DEBUG] showBookingModalWithData called with:', {dogId, date, walkType});
+        async function showBookingModalWithData(dogId, date, scheduledTime) {
+            console.log('[DEBUG] showBookingModalWithData called with:', {dogId, date, scheduledTime});
 
             try {
                 // Fetch the dog by ID (works even if dog is not in current filtered list)
@@ -472,17 +466,23 @@
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('booking-date').min = today;
 
-                // Set date and walk type from calendar
-                console.log('[DEBUG] Setting date:', date, 'and walkType:', walkType);
+                // Set date from calendar
+                console.log('[DEBUG] Setting date:', date);
                 document.getElementById('booking-date').value = date;
-                document.getElementById('booking-walk-type').value = walkType;
 
                 // Setup event listeners for dynamic time loading
                 console.log('[DEBUG] Setting up event listeners');
                 setupBookingFormListeners();
 
-                console.log('[DEBUG] Updating time options');
-                updateTimeOptions();
+                // Load available time slots for the date
+                console.log('[DEBUG] Loading available time slots');
+                await loadAvailableTimeSlots(date);
+
+                // Pre-select the time if provided
+                if (scheduledTime) {
+                    console.log('[DEBUG] Pre-selecting time:', scheduledTime);
+                    document.getElementById('booking-time').value = scheduledTime;
+                }
 
                 // Show modal
                 console.log('[DEBUG] Showing modal');
@@ -559,29 +559,22 @@
 
         // Legacy fallback for time options (if API fails)
         function updateTimeOptionsLegacy() {
-            const walkType = document.getElementById('booking-walk-type').value;
             const timeSelect = document.getElementById('booking-time');
-
-            if (walkType === 'morning') {
-                timeSelect.innerHTML = `
-                    <option value="">Bitte wählen...</option>
-                    <option value="09:00">09:00</option>
-                    <option value="09:30">09:30</option>
-                    <option value="10:00">10:00</option>
-                    <option value="10:30">10:30</option>
-                    <option value="11:00">11:00</option>
-                `;
-            } else {
-                timeSelect.innerHTML = `
-                    <option value="">Bitte wählen...</option>
-                    <option value="14:00">14:00</option>
-                    <option value="14:30">14:30</option>
-                    <option value="15:00">15:00</option>
-                    <option value="15:30">15:30</option>
-                    <option value="16:00">16:00</option>
-                    <option value="16:30">16:30</option>
-                `;
-            }
+            // Default time slots as fallback
+            timeSelect.innerHTML = `
+                <option value="">Bitte wählen...</option>
+                <option value="09:00">09:00</option>
+                <option value="09:30">09:30</option>
+                <option value="10:00">10:00</option>
+                <option value="10:30">10:30</option>
+                <option value="11:00">11:00</option>
+                <option value="14:00">14:00</option>
+                <option value="14:30">14:30</option>
+                <option value="15:00">15:00</option>
+                <option value="15:30">15:30</option>
+                <option value="16:00">16:00</option>
+                <option value="16:30">16:30</option>
+            `;
         }
 
         // Updated to load time slots from API
@@ -590,7 +583,7 @@
             if (date) {
                 loadAvailableTimeSlots(date);
             } else {
-                // No date selected yet, use legacy options
+                // No date selected yet, use fallback options
                 updateTimeOptionsLegacy();
             }
         }
@@ -601,17 +594,15 @@
 
             const dogId = parseInt(document.getElementById('booking-dog-id').value);
             const date = document.getElementById('booking-date').value;
-            const walkType = document.getElementById('booking-walk-type').value;
             const time = document.getElementById('booking-time').value;
 
-            console.log('[BOOKING DEBUG] Form values:', {dogId, date, walkType, time});
+            console.log('[BOOKING DEBUG] Form values:', {dogId, date, time});
             console.log('[BOOKING DEBUG] Is authenticated?', api.isAuthenticated());
             console.log('[BOOKING DEBUG] Token:', api.getToken());
 
             const bookingData = {
                 dog_id: dogId,
                 date: date,
-                walk_type: walkType,
                 scheduled_time: time
             };
             console.log('[BOOKING DEBUG] Booking data to send:', bookingData);

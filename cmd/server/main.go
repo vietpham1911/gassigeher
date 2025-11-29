@@ -193,15 +193,15 @@ func main() {
 	admin.HandleFunc("/admin/activity", dashboardHandler.GetRecentActivity).Methods("GET")
 
 	// Booking time management (admin only)
-	admin.HandleFunc("/booking-times/rules", bookingTimeHandler.GetRules).Methods("GET")
-	admin.HandleFunc("/booking-times/rules", bookingTimeHandler.UpdateRules).Methods("PUT")
-	admin.HandleFunc("/booking-times/rules", bookingTimeHandler.CreateRule).Methods("POST")
-	admin.HandleFunc("/booking-times/rules/{id}", bookingTimeHandler.DeleteRule).Methods("DELETE")
+	admin.HandleFunc("/admin/booking-times/rules", bookingTimeHandler.GetRules).Methods("GET")
+	admin.HandleFunc("/admin/booking-times/rules", bookingTimeHandler.UpdateRules).Methods("PUT")
+	admin.HandleFunc("/admin/booking-times/rules", bookingTimeHandler.CreateRule).Methods("POST")
+	admin.HandleFunc("/admin/booking-times/rules/{id}", bookingTimeHandler.DeleteRule).Methods("DELETE")
 
 	// Holiday management (admin only)
-	admin.HandleFunc("/holidays", holidayHandler.CreateHoliday).Methods("POST")
-	admin.HandleFunc("/holidays/{id}", holidayHandler.UpdateHoliday).Methods("PUT")
-	admin.HandleFunc("/holidays/{id}", holidayHandler.DeleteHoliday).Methods("DELETE")
+	admin.HandleFunc("/admin/holidays", holidayHandler.CreateHoliday).Methods("POST")
+	admin.HandleFunc("/admin/holidays/{id}", holidayHandler.UpdateHoliday).Methods("PUT")
+	admin.HandleFunc("/admin/holidays/{id}", holidayHandler.DeleteHoliday).Methods("DELETE")
 
 	// Booking approval management (admin only)
 	admin.HandleFunc("/bookings/pending-approvals", bookingHandler.GetPendingApprovals).Methods("GET")
