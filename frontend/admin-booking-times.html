@@ -88,13 +88,23 @@
                 <ul>
                     <li><a href="/admin-dashboard.html" data-i18n="admin_dashboard.title">Dashboard</a></li>
                     <li><a href="/admin-dogs.html" data-i18n="dogs.manage_dogs">Hunde</a></li>
-                    <li><a href="/admin-bookings.html" data-i18n="admin.manage_bookings">Buchungen</a></li>
-                    <li><a href="/admin-blocked-dates.html" data-i18n="admin.manage_blocked_dates">Gesperrte Tage</a></li>
-                    <li><a href="/admin-experience-requests.html" data-i18n="admin.manage_experience_requests">Level-Anfragen</a></li>
-                    <li><a href="/admin-users.html" data-i18n="users.title">Benutzer</a></li>
-                    <li><a href="/admin-reactivation-requests.html" data-i18n="reactivation.manage_requests">Reaktivierungen</a></li>
-                    <li><a href="/admin-booking-times.html" data-i18n="admin.booking_times">Buchungszeiten</a></li>
-                    <li><a href="/admin-booking-approvals.html" data-i18n="admin.booking_approvals">Genehmigungen</a></li>
+                    <li class="nav-dropdown">
+                        <a href="#">Buchungen</a>
+                        <div class="nav-dropdown-menu">
+                            <a href="/admin-bookings.html">📅 Alle Buchungen</a>
+                            <a href="/admin-booking-approvals.html">✓ Genehmigungen</a>
+                            <a href="/admin-booking-times.html">⏰ Buchungszeiten</a>
+                            <a href="/admin-blocked-dates.html">🚫 Gesperrte Tage</a>
+                        </div>
+                    </li>
+                    <li class="nav-dropdown">
+                        <a href="#">Benutzer</a>
+                        <div class="nav-dropdown-menu">
+                            <a href="/admin-users.html">👥 Alle Benutzer</a>
+                            <a href="/admin-experience-requests.html">⭐ Level-Anfragen</a>
+                            <a href="/admin-reactivation-requests.html">🔄 Reaktivierungen</a>
+                        </div>
+                    </li>
                     <li><a href="/admin-settings.html" data-i18n="admin_dashboard.system_settings">Einstellungen</a></li>
                     <li><a href="/dashboard.html" class="area-switcher" data-i18n="nav.user_area">👤 Benutzer-Bereich</a></li>
                     <li><a href="#" onclick="api.logout()" data-i18n="nav.logout">Abmelden</a></li>

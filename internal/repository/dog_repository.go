@@ -67,7 +67,7 @@ func (r *DogRepository) FindByID(id int) (*models.Dog, error) {
 	query := `
 		SELECT id, name, breed, size, age, category, photo, photo_thumbnail, special_needs,
 		       pickup_location, walk_route, walk_duration, special_instructions,
-		       default_morning_time, default_evening_time, is_available,
+		       default_morning_time, default_evening_time, is_available, is_featured,
 		       unavailable_reason, unavailable_since, created_at, updated_at
 		FROM dogs
 		WHERE id = ?
@@ -91,6 +91,7 @@ func (r *DogRepository) FindByID(id int) (*models.Dog, error) {
 		&dog.DefaultMorningTime,
 		&dog.DefaultEveningTime,
 		&dog.IsAvailable,
+		&dog.IsFeatured,
 		&dog.UnavailableReason,
 		&dog.UnavailableSince,
 		&dog.CreatedAt,
@@ -112,7 +113,7 @@ func (r *DogRepository) FindAll(filter *models.DogFilterRequest) ([]*models.Dog,
 	query := `
 		SELECT id, name, breed, size, age, category, photo, photo_thumbnail, special_needs,
 		       pickup_location, walk_route, walk_duration, special_instructions,
-		       default_morning_time, default_evening_time, is_available,
+		       default_morning_time, default_evening_time, is_available, is_featured,
 		       unavailable_reason, unavailable_since, created_at, updated_at
 		FROM dogs
 		WHERE 1=1
@@ -187,6 +188,7 @@ func (r *DogRepository) FindAll(filter *models.DogFilterRequest) ([]*models.Dog,
 			&dog.DefaultMorningTime,
 			&dog.DefaultEveningTime,
 			&dog.IsAvailable,
+			&dog.IsFeatured,
 			&dog.UnavailableReason,
 			&dog.UnavailableSince,
 			&dog.CreatedAt,
@@ -199,6 +201,85 @@ func (r *DogRepository) FindAll(filter *models.DogFilterRequest) ([]*models.Dog,
 	}
 
 	return dogs, nil
+}
+
+// GetFeatured returns up to 3 featured dogs that are available
+func (r *DogRepository) GetFeatured() ([]*models.Dog, error) {
+	query := `
+		SELECT id, name, breed, size, age, category, photo, photo_thumbnail, special_needs,
+		       pickup_location, walk_route, walk_duration, special_instructions,
+		       default_morning_time, default_evening_time, is_available, is_featured,
+		       unavailable_reason, unavailable_since, created_at, updated_at
+		FROM dogs
+		WHERE is_featured = 1 AND is_available = 1
+		ORDER BY name ASC
+		LIMIT 3
+	`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query featured dogs: %w", err)
+	}
+	defer rows.Close()
+
+	dogs := []*models.Dog{}
+	for rows.Next() {
+		dog := &models.Dog{}
+		err := rows.Scan(
+			&dog.ID,
+			&dog.Name,
+			&dog.Breed,
+			&dog.Size,
+			&dog.Age,
+			&dog.Category,
+			&dog.Photo,
+			&dog.PhotoThumbnail,
+			&dog.SpecialNeeds,
+			&dog.PickupLocation,
+			&dog.WalkRoute,
+			&dog.WalkDuration,
+			&dog.SpecialInstructions,
+			&dog.DefaultMorningTime,
+			&dog.DefaultEveningTime,
+			&dog.IsAvailable,
+			&dog.IsFeatured,
+			&dog.UnavailableReason,
+			&dog.UnavailableSince,
+			&dog.CreatedAt,
+			&dog.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan featured dog: %w", err)
+		}
+		dogs = append(dogs, dog)
+	}
+
+	return dogs, nil
+}
+
+// SetFeatured sets the featured status for a dog
+func (r *DogRepository) SetFeatured(id int, isFeatured bool) error {
+	query := `UPDATE dogs SET is_featured = ?, updated_at = ? WHERE id = ?`
+
+	_, err := r.db.Exec(query, isFeatured, time.Now(), id)
+	if err != nil {
+		return fmt.Errorf("failed to set featured status: %w", err)
+	}
+
+	return nil
+}
+
+// CountFeatured returns the number of featured dogs
+func (r *DogRepository) CountFeatured() (int, error) {
+	query := `SELECT COUNT(*) FROM dogs WHERE is_featured = 1`
+
+	var count int
+	err := r.db.QueryRow(query).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count featured dogs: %w", err)
+	}
+
+	return count, nil
 }
 
 // Update updates a dog

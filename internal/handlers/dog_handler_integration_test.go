@@ -53,6 +53,7 @@ func setupTestDB(t *testing.T) *sql.DB {
 			is_available INTEGER DEFAULT 1,
 			unavailable_reason TEXT,
 			unavailable_since TIMESTAMP,
+			is_featured INTEGER DEFAULT 0,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		)

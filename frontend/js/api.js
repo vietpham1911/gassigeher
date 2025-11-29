@@ -190,6 +190,16 @@ class API {
         });
     }
 
+    async setDogFeatured(dogId, isFeatured) {
+        return this.request('PUT', `/dogs/${dogId}/featured`, {
+            is_featured: isFeatured,
+        });
+    }
+
+    async getFeaturedDogs() {
+        return this.request('GET', '/dogs/featured');
+    }
+
     // BOOKING ENDPOINTS
 
     async createBooking(data) {

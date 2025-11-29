@@ -22,6 +22,7 @@ type Dog struct {
 	DefaultMorningTime   *string    `json:"default_morning_time,omitempty"` // HH:MM format
 	DefaultEveningTime   *string    `json:"default_evening_time,omitempty"` // HH:MM format
 	IsAvailable          bool       `json:"is_available"`
+	IsFeatured           bool       `json:"is_featured"`
 	UnavailableReason    *string    `json:"unavailable_reason,omitempty"`
 	UnavailableSince     *time.Time `json:"unavailable_since,omitempty"`
 	CreatedAt            time.Time  `json:"created_at"`

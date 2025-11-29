@@ -489,3 +489,77 @@ func (h *DogHandler) GetBreeds(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, breeds)
 }
+
+// GetFeaturedDogs handles GET /api/dogs/featured - get featured dogs for homepage (public)
+func (h *DogHandler) GetFeaturedDogs(w http.ResponseWriter, r *http.Request) {
+	dogs, err := h.dogRepo.GetFeatured()
+	if err != nil {
+		log.Printf("Error fetching featured dogs: %v", err)
+		respondError(w, http.StatusInternalServerError, "Failed to fetch featured dogs")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, dogs)
+}
+
+// SetFeatured handles PUT /api/dogs/:id/featured - set featured status (admin only)
+func (h *DogHandler) SetFeatured(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid dog ID")
+		return
+	}
+
+	// Parse request body
+	var req struct {
+		IsFeatured bool `json:"is_featured"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Check if dog exists
+	dog, err := h.dogRepo.FindByID(id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
+
+	if dog == nil {
+		respondError(w, http.StatusNotFound, "Dog not found")
+		return
+	}
+
+	// If setting as featured, check count limit (max 3)
+	if req.IsFeatured {
+		count, err := h.dogRepo.CountFeatured()
+		if err != nil {
+			respondError(w, http.StatusInternalServerError, "Failed to check featured count")
+			return
+		}
+
+		// Allow if dog is already featured (just updating) or if under limit
+		if !dog.IsFeatured && count >= 3 {
+			respondError(w, http.StatusBadRequest, "Es können maximal nur 3 Hunde auf der Startseite angezeigt werden.")
+			return
+		}
+	}
+
+	// Update featured status
+	if err := h.dogRepo.SetFeatured(id, req.IsFeatured); err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to update featured status")
+		return
+	}
+
+	// Get updated dog
+	dog, err = h.dogRepo.FindByID(id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to fetch updated dog")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, dog)
+}

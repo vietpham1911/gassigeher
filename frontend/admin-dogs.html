@@ -15,13 +15,23 @@
                 <ul>
                     <li><a href="/admin-dashboard.html" data-i18n="admin_dashboard.title">Dashboard</a></li>
                     <li><a href="/admin-dogs.html" data-i18n="dogs.manage_dogs">Hunde</a></li>
-                    <li><a href="/admin-bookings.html" data-i18n="admin.manage_bookings">Buchungen</a></li>
-                    <li><a href="/admin-blocked-dates.html" data-i18n="admin.manage_blocked_dates">Gesperrte Tage</a></li>
-                    <li><a href="/admin-experience-requests.html" data-i18n="admin.manage_experience_requests">Level-Anfragen</a></li>
-                    <li><a href="/admin-users.html" data-i18n="users.title">Benutzer</a></li>
-                    <li><a href="/admin-reactivation-requests.html" data-i18n="reactivation.manage_requests">Reaktivierungen</a></li>
-                    <li><a href="/admin-booking-times.html" data-i18n="admin.booking_times">Buchungszeiten</a></li>
-                    <li><a href="/admin-booking-approvals.html" data-i18n="admin.booking_approvals">Genehmigungen</a></li>
+                    <li class="nav-dropdown">
+                        <a href="#">Buchungen</a>
+                        <div class="nav-dropdown-menu">
+                            <a href="/admin-bookings.html">📅 Alle Buchungen</a>
+                            <a href="/admin-booking-approvals.html">✓ Genehmigungen</a>
+                            <a href="/admin-booking-times.html">⏰ Buchungszeiten</a>
+                            <a href="/admin-blocked-dates.html">🚫 Gesperrte Tage</a>
+                        </div>
+                    </li>
+                    <li class="nav-dropdown">
+                        <a href="#">Benutzer</a>
+                        <div class="nav-dropdown-menu">
+                            <a href="/admin-users.html">👥 Alle Benutzer</a>
+                            <a href="/admin-experience-requests.html">⭐ Level-Anfragen</a>
+                            <a href="/admin-reactivation-requests.html">🔄 Reaktivierungen</a>
+                        </div>
+                    </li>
                     <li><a href="/admin-settings.html" data-i18n="admin_dashboard.system_settings">Einstellungen</a></li>
                     <li><a href="/dashboard.html" class="area-switcher" data-i18n="nav.user_area">👤 Benutzer-Bereich</a></li>
                     <li><a href="#" onclick="api.logout()" data-i18n="nav.logout">Abmelden</a></li>
@@ -198,6 +208,7 @@
             container.innerHTML = currentDogs.map(dog => `
                 <div class="dog-card ${!dog.is_available ? 'unavailable' : ''}">
                     ${!dog.is_available ? `<div class="dog-unavailable-banner">${dog.unavailable_reason || 'Nicht verfügbar'}</div>` : ''}
+                    ${dog.is_featured ? `<div class="dog-featured-badge" title="Auf Startseite angezeigt">⭐</div>` : ''}
                     ${getDogPhotoHtml(dog, false, 'dog-card-image', true, true)}
                     <div class="dog-card-body">
                         <div class="dog-category-badge ${dog.category}">${getCategoryLabel(dog.category)}</div>
@@ -205,6 +216,9 @@
                         <p class="dog-card-info">${dog.breed} • ${getSizeLabel(dog.size)} • ${dog.age} Jahre</p>
                         <div style="display: flex; gap: 5px; margin-top: 10px;">
                             <button class="btn" style="flex: 1; padding: 8px;" onclick="editDog(${dog.id})">✏️</button>
+                            <button class="btn ${dog.is_featured ? 'btn-warning' : 'btn-secondary'}" style="flex: 1; padding: 8px;" onclick="toggleFeatured(${dog.id}, ${!dog.is_featured})" title="${dog.is_featured ? 'Von Startseite entfernen' : 'Auf Startseite anzeigen'}">
+                                ⭐
+                            </button>
                             <button class="btn btn-secondary" style="flex: 1; padding: 8px;" onclick="toggleAvailability(${dog.id}, ${!dog.is_available})">
                                 ${dog.is_available ? '🚫' : '✅'}
                             </button>
@@ -321,6 +335,16 @@
                 loadDogs();
             } catch (error) {
                 showAlert('error', error.message || 'Fehler beim Aktualisieren');
+            }
+        }
+
+        async function toggleFeatured(id, makeFeatured) {
+            try {
+                await api.setDogFeatured(id, makeFeatured);
+                showAlert('success', makeFeatured ? 'Hund wird auf der Startseite angezeigt' : 'Hund von Startseite entfernt');
+                loadDogs();
+            } catch (error) {
+                showAlert('error', error.message || 'Fehler beim Aktualisieren (max. 3 Featured-Hunde)');
             }
         }
 

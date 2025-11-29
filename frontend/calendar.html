@@ -211,16 +211,20 @@
         }
 
         @media (max-width: 768px) {
+            /* Hide view toggle on mobile - grid view doesn't work on small screens */
             .view-toggle {
-                display: flex;
+                display: none !important;
             }
 
-            .calendar-grid {
-                display: none;
+            /* Always hide grid on mobile */
+            .calendar-grid,
+            .calendar-wrapper {
+                display: none !important;
             }
 
+            /* Always show mobile list view */
             .calendar-mobile {
-                display: block;
+                display: block !important;
             }
 
             .dog-card-mobile {
@@ -256,6 +260,11 @@
             .day-slot.available:active {
                 background: linear-gradient(135deg, #c3e6cb 0%, #b1dfbb 100%);
             }
+        }
+
+        /* Mobile view - hidden by default on desktop */
+        .calendar-mobile {
+            display: none;
         }
 
         /* Loading State */
@@ -297,7 +306,7 @@
             <div id="alert-container"></div>
 
             <div class="card">
-                <h1>📅 Verfügbarkeitskalender</h1>
+                <h1>📅 Kalender</h1>
                 <p style="color: var(--text-gray); font-size: 1.1rem; margin-bottom: 0;">
                     Übersicht über verfügbare Hunde und Buchungen für die nächsten 14 Tage.
                     <strong style="color: var(--primary-green);">Klicken Sie auf eine grüne Zelle</strong>, um schnell zu buchen!
@@ -359,7 +368,7 @@
             </div>
 
             <!-- Mobile List View -->
-            <div id="calendar-mobile" class="calendar-mobile" style="display: none;">
+            <div id="calendar-mobile" class="calendar-mobile">
                 <!-- Mobile cards will be inserted here -->
             </div>
         </div>
@@ -443,6 +452,7 @@
                 console.log('[CALENDAR DEBUG] Loaded', blockedDates.length, 'blocked dates');
 
                 renderCalendar();
+                renderMobileView();  // Always render both views, CSS handles visibility
             } catch (error) {
                 console.error('[CALENDAR ERROR] Failed to load calendar:', error);
                 showAlert('error', 'Fehler beim Laden der Daten: ' + (error.message || 'Unbekannter Fehler'));

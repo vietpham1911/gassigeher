@@ -118,6 +118,9 @@ func main() {
 	router.HandleFunc("/api/booking-times/rules-for-date", bookingTimeHandler.GetRulesForDate).Methods("GET")
 	router.HandleFunc("/api/holidays", holidayHandler.GetHolidays).Methods("GET")
 
+	// Featured dogs (public - for homepage)
+	router.HandleFunc("/api/dogs/featured", dogHandler.GetFeaturedDogs).Methods("GET")
+
 	// Protected routes (authenticated users)
 	protected := router.PathPrefix("/api").Subrouter()
 	protected.Use(middleware.AuthMiddleware(cfg.JWTSecret))
@@ -161,6 +164,7 @@ func main() {
 	admin.HandleFunc("/dogs/{id}", dogHandler.DeleteDog).Methods("DELETE")
 	admin.HandleFunc("/dogs/{id}/photo", dogHandler.UploadDogPhoto).Methods("POST")
 	admin.HandleFunc("/dogs/{id}/availability", dogHandler.ToggleAvailability).Methods("PUT")
+	admin.HandleFunc("/dogs/{id}/featured", dogHandler.SetFeatured).Methods("PUT")
 
 	// Blocked dates management (admin only)
 	admin.HandleFunc("/blocked-dates", blockedDateHandler.CreateBlockedDate).Methods("POST")
