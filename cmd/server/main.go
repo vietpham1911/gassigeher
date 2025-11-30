@@ -245,6 +245,12 @@ func main() {
 	router.HandleFunc("/verify", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./frontend/verify.html")
 	}).Methods("GET")
+	router.HandleFunc("/reset-password", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./frontend/reset-password.html")
+	}).Methods("GET")
+	router.HandleFunc("/forgot-password", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./frontend/forgot-password.html")
+	}).Methods("GET")
 
 	// Static files
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend")))
