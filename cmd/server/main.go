@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"io/fs"
 	"log"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/tranmh/gassigeher/internal/static"
 	"github.com/tranmh/gassigeher/internal/config"
 	"github.com/tranmh/gassigeher/internal/cron"
 	"github.com/tranmh/gassigeher/internal/database"
@@ -19,6 +19,8 @@ import (
 	"github.com/tranmh/gassigeher/internal/middleware"
 	"github.com/tranmh/gassigeher/internal/repository"
 	"github.com/tranmh/gassigeher/internal/services"
+	"github.com/tranmh/gassigeher/internal/static"
+	"github.com/tranmh/gassigeher/internal/version"
 )
 
 func main() {
@@ -120,6 +122,12 @@ func main() {
 	cronService := cron.NewCronService(db, cfg)
 	cronService.Start()
 	defer cronService.Stop()
+
+	// Version endpoint (public)
+	router.HandleFunc("/api/version", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(version.Get())
+	}).Methods("GET")
 
 	// Public routes
 	router.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")

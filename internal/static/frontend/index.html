@@ -90,6 +90,7 @@
     <footer>
         <div class="container">
             <p>&copy; 2025 Gassigeher. Alle Rechte vorbehalten. | <a href="/terms.html">AGB</a> | <a href="/privacy.html">Datenschutz</a></p>
+            <p id="version-info" style="font-size: 0.8rem; color: var(--text-gray); margin-top: 8px;"></p>
         </div>
     </footer>
 
@@ -239,11 +240,27 @@
             }
         }
 
+        // Load version info
+        async function loadVersionInfo() {
+            try {
+                const response = await fetch('/api/version');
+                if (!response.ok) return;
+                const info = await response.json();
+                const versionEl = document.getElementById('version-info');
+                if (versionEl && info.version && info.git_commit) {
+                    versionEl.textContent = `Version ${info.version} (${info.git_commit})`;
+                }
+            } catch (error) {
+                console.error('Error loading version info:', error);
+            }
+        }
+
         // Load translations and setup navigation
         document.addEventListener('DOMContentLoaded', async () => {
             await window.i18n.load();
             await setupNavigation();
             await loadFeaturedDogs();
+            await loadVersionInfo();
         });
     </script>
 </body>
