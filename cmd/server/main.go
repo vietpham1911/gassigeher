@@ -115,7 +115,7 @@ func main() {
 	holidayHandler := handlers.NewHolidayHandler(holidayRepo, holidayService)
 
 	// Start cron service for auto-completion and reminders
-	cronService := cron.NewCronService(db)
+	cronService := cron.NewCronService(db, cfg)
 	cronService.Start()
 	defer cronService.Stop()
 

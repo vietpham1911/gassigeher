@@ -21,6 +21,59 @@ func setupTestDB(t *testing.T) *sql.DB {
 
 	// Create tables
 	schema := `
+	CREATE TABLE users (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL,
+		email TEXT UNIQUE,
+		phone TEXT,
+		password_hash TEXT,
+		experience_level TEXT DEFAULT 'green',
+		is_admin INTEGER DEFAULT 0,
+		is_super_admin INTEGER DEFAULT 0,
+		is_verified INTEGER DEFAULT 0,
+		is_active INTEGER DEFAULT 1,
+		is_deleted INTEGER DEFAULT 0,
+		verification_token TEXT,
+		verification_token_expires TIMESTAMP,
+		password_reset_token TEXT,
+		password_reset_expires TIMESTAMP,
+		profile_photo TEXT,
+		anonymous_id TEXT,
+		terms_accepted_at TIMESTAMP,
+		last_activity_at TIMESTAMP,
+		deactivated_at TIMESTAMP,
+		deactivation_reason TEXT,
+		reactivated_at TIMESTAMP,
+		deleted_at TIMESTAMP,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+
+	CREATE TABLE dogs (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL,
+		breed TEXT,
+		size TEXT,
+		age INTEGER,
+		category TEXT DEFAULT 'green',
+		photo TEXT,
+		photo_thumbnail TEXT,
+		special_needs TEXT,
+		pickup_location TEXT,
+		walk_route TEXT,
+		walk_duration INTEGER,
+		special_instructions TEXT,
+		default_morning_time TEXT,
+		default_evening_time TEXT,
+		is_available INTEGER DEFAULT 1,
+		is_featured INTEGER DEFAULT 0,
+		external_link TEXT,
+		unavailable_reason TEXT,
+		unavailable_since TIMESTAMP,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+
 	CREATE TABLE bookings (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		user_id INTEGER NOT NULL,
@@ -29,6 +82,7 @@ func setupTestDB(t *testing.T) *sql.DB {
 		scheduled_time TEXT NOT NULL,
 		status TEXT DEFAULT 'scheduled' CHECK(status IN ('scheduled', 'completed', 'cancelled')),
 		completed_at TIMESTAMP,
+		reminder_sent_at TIMESTAMP,
 		user_notes TEXT,
 		admin_cancellation_reason TEXT,
 		requires_approval INTEGER DEFAULT 0,
@@ -40,6 +94,14 @@ func setupTestDB(t *testing.T) *sql.DB {
 		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		UNIQUE(dog_id, date, scheduled_time)
 	);
+
+	-- Insert test users
+	INSERT INTO users (id, name, email) VALUES (1, 'Test User', 'test@example.com');
+	INSERT INTO users (id, name, email) VALUES (2, 'Test User 2', 'test2@example.com');
+
+	-- Insert test dogs
+	INSERT INTO dogs (id, name, breed) VALUES (1, 'Buddy', 'Labrador');
+	INSERT INTO dogs (id, name, breed) VALUES (2, 'Max', 'German Shepherd');
 	`
 
 	if _, err := db.Exec(schema); err != nil {

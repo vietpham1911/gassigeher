@@ -10,7 +10,7 @@ import (
 // DONE: TestCronService_AutoCompleteBookings tests automatic booking completion
 func TestCronService_AutoCompleteBookings(t *testing.T) {
 	db := testutil.SetupTestDB(t)
-	cronService := NewCronService(db)
+	cronService := NewCronService(db, nil)
 
 	// Create test user and dog
 	userID := testutil.SeedTestUser(t, db, "test@example.com", "Test User", "green")
@@ -92,7 +92,7 @@ func TestCronService_AutoCompleteBookings(t *testing.T) {
 // DONE: TestCronService_AutoDeactivateInactiveUsers tests automatic user deactivation
 func TestCronService_AutoDeactivateInactiveUsers(t *testing.T) {
 	db := testutil.SetupTestDB(t)
-	cronService := NewCronService(db)
+	cronService := NewCronService(db, nil)
 
 	t.Run("deactivate users inactive for 365+ days", func(t *testing.T) {
 		// Create user with old last activity
@@ -185,7 +185,7 @@ func TestCronService_AutoDeactivateInactiveUsers(t *testing.T) {
 func TestCronService_NewCronService(t *testing.T) {
 	db := testutil.SetupTestDB(t)
 
-	service := NewCronService(db)
+	service := NewCronService(db, nil)
 
 	if service == nil {
 		t.Fatal("NewCronService should return non-nil service")

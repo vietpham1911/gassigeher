@@ -11,6 +11,7 @@ type Booking struct {
 	ScheduledTime           string     `json:"scheduled_time"` // HH:MM format
 	Status                  string     `json:"status"`
 	CompletedAt             *time.Time `json:"completed_at,omitempty"`
+	ReminderSentAt          *time.Time `json:"reminder_sent_at,omitempty"`
 	UserNotes               *string    `json:"user_notes,omitempty"`
 	AdminCancellationReason *string    `json:"admin_cancellation_reason,omitempty"`
 	CreatedAt               time.Time  `json:"created_at"`
