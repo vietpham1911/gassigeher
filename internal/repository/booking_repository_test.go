@@ -8,8 +8,8 @@ import (
 	"time"
 
 	_ "modernc.org/sqlite"
-	"github.com/tranm/gassigeher/internal/models"
-	"github.com/tranm/gassigeher/internal/testutil"
+	"github.com/tranmh/gassigeher/internal/models"
+	"github.com/tranmh/gassigeher/internal/testutil"
 )
 
 // setupTestDB creates a test database

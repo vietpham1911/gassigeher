@@ -112,6 +112,7 @@ func main() {
 	reactivationHandler := handlers.NewReactivationRequestHandler(db, cfg)
 	dashboardHandler := handlers.NewDashboardHandler(db, cfg)
 	healthHandler := handlers.NewHealthHandler()
+	router.HandleFunc("/api/health", healthHandler.Health).Methods("GET")
 
 	// Initialize booking time repositories and services
 	bookingTimeRepo := repository.NewBookingTimeRepository(db)
