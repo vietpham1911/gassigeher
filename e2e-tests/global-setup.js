@@ -18,13 +18,6 @@ module.exports = async (config) => {
   try {
     const testDbPath = path.resolve(__dirname, 'test.db');
 
-    // Step 1: Delete existing test database
-    console.log('📦 Setting up test database...');
-    if (fs.existsSync(testDbPath)) {
-      fs.unlinkSync(testDbPath);
-      console.log('   ✅ Deleted existing test.db');
-    }
-
     // Step 2: Wait for server to create database
     console.log('⏳ Waiting for server to create database...');
     let waitCount = 0;

@@ -29,7 +29,7 @@ jobs:
       - name: Start Go-server
         run: |
           go build -o gassigeher ./cmd/server
-          DATABASE_PATH=./test.db JWT_SECRET=test SUPER_ADMIN_EMAIL=test@test.com PORT=8080 ./gassigeher &
+          DATABASE_PATH=./e2e-tests/test.db JWT_SECRET=test SUPER_ADMIN_EMAIL=test@test.com PORT=8080 ./gassigeher &
       - name: Wait for server
         run: |
           for i in {1..30}; do
@@ -66,7 +66,7 @@ jobs:
       - name: Start Go-server
         run: |
           go build -o gassigeher ./cmd/server
-          DATABASE_PATH=./test.db JWT_SECRET=test SUPER_ADMIN_EMAIL=test@test.com PORT=8080 ./gassigeher &
+          DATABASE_PATH=./e2e-tests/test.db JWT_SECRET=test SUPER_ADMIN_EMAIL=test@test.com PORT=8080 ./gassigeher &
       - name: Wait for server
         run: |
           for i in {1..30}; do
@@ -103,7 +103,7 @@ jobs:
       - name: Start Go-server
         run: |
           go build -o gassigeher ./cmd/server
-          DATABASE_PATH=./test.db JWT_SECRET=test SUPER_ADMIN_EMAIL=test@test.com PORT=8080 ./gassigeher &
+          DATABASE_PATH=./e2e-tests/test.db JWT_SECRET=test SUPER_ADMIN_EMAIL=test@test.com PORT=8080 ./gassigeher &
       - name: Wait for server
         run: |
           for i in {1..30}; do
