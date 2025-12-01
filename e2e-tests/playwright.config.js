@@ -95,8 +95,8 @@ module.exports = defineConfig({
   // Global setup/teardown - DISABLED FOR NOW
   // Run tests against existing server with existing database
   // Start server manually: go run cmd/server/main.go OR ./gassigeher.exe
-  // globalSetup: require.resolve('./global-setup.js'),
-  // globalTeardown: require.resolve('./global-teardown.js'),
+  globalSetup: require.resolve('./global-setup.js'),
+  globalTeardown: require.resolve('./global-teardown.js'),
 });
 
 // DONE: Playwright configuration created with desktop + mobile projects
